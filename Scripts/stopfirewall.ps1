@@ -1,0 +1,1 @@
+Get-Service mpssvc | stop-service
