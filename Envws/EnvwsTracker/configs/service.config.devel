@@ -1,0 +1,20 @@
+﻿
+; Service configuration options
+;
+
+; Working directory where files are downloaded to.
+workingDir = C:\ews_working
+
+; Appended to the zip filename (before extension)
+resultsAppendStr = _results
+
+; Path to the envision executable.
+envExePath = \\infoserv2\envws\deploy\envision\envision.exe
+
+; directory to create and copy job logs into
+resultsLogDir = job_logs
+
+; Envision log files: "Envision_<logtype>.<hostname>.datetime.log"
+envReportLog = Envision_reportlog
+envLogbookLog = Envision_logbook
+envLog = Envision
