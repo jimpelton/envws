@@ -7,7 +7,7 @@ namespace EnvwsTracker
 
     public class JobCompletedEventArgs : EventArgs
     {
-        public JobData JobData
+        public JobData Job
         {
             get
             {

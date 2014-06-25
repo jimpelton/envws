@@ -18,7 +18,7 @@ namespace EnvwsOrchestrator
 
         public static void Main(string[] args)
         {
-            //BasicConfigurator.Configure();
+//            BasicConfigurator.Configure();
             string cmd = string.Empty;	
 			if (args.Length >= 1)
             {
@@ -29,6 +29,9 @@ namespace EnvwsOrchestrator
                     Environment.Exit(0);
                 }
             }
+
+            XmlConfigurator.Configure(new System.IO.FileInfo("log4.config"));
+
             Program p = new Program();
             p.Start();
             Console.WriteLine("Press <Enter> to quit...");

@@ -16,6 +16,7 @@ namespace EnvwsTracker
     using EnvwsLib.DataContracts;
     using EnvwsLib.ServiceProxies;
     using EnvwsLib.ServiceContracts;
+    using System.Collections.Generic;
 
 	/// <summary>
 	/// TrackProcessClient is a client to the Orchestrator service.
@@ -31,7 +32,11 @@ namespace EnvwsTracker
         private static Timer pingTimer;
         private static Timer checkJobTimer;
         private static string machineName = string.Empty;
-        
+        private static int jobCheckFreqMillis = 1000;
+
+        private static IList<JobData> completedJobs = new List<JobData>();
+        private static JobData JobToBeReturned = null;
+
         public TrackProcessClient(TrackerData td /*, CheckInServiceClient client*/ )
         {
             data = td;
@@ -95,9 +100,9 @@ namespace EnvwsTracker
 
                 logger.Debug("Checked in.");
             }
-            catch (Exception e)
+            catch (EndpointNotFoundException e)
             {
-                logger.Debug("Woops! CheckIn failed that time. I'll keep trying!", e);
+                logger.Error("Orchestrator not found when checking in.", e);
             }
 
             return rval;
@@ -110,8 +115,32 @@ namespace EnvwsTracker
 		/// </summary>
         private void OnJobComplete(object sender, JobCompletedEventArgs args)
         {
-            Client.ReturnFinishedJob(args.JobData);
+            ReturnFinishedJob(args.Job);
             RequestNewJob(this);
+        }
+
+        /// <summary>
+        /// Returns the given job.
+        /// </summary>
+        /// <returns>False if the Orchestrator's endpoint was not found, true otherwise.</returns>
+        private bool ReturnFinishedJob(JobData job)
+        {
+            bool rval = false;
+            try
+            {
+                Client.ReturnFinishedJob(job);
+                JobToBeReturned = null;
+                JobNeedsReturning = false;
+                rval = true;
+            }
+            catch (EndpointNotFoundException e)
+            {
+                logger.Error("Orchestrator not found when returning new job.", e);
+                jobCheckFreqMillis = 5000;
+                JobNeedsReturning = true;
+                JobToBeReturned = job;
+            }
+            return rval;
         }
 
 		/// <summary>
@@ -119,19 +148,34 @@ namespace EnvwsTracker
 		/// </summary>
         private void RequestNewJob(object state)
         {
-            JobData jd = Client.RequestJob();
-            if (jd != null)
+            JobData jd;
+            try
             {
-                logger.Debug("Got new job.");
-                jd.TrackerGuid = data.Guid;
-                manager.AddNewJob(jd);
+                jd = Client.RequestJob();
+                if (jd != null)
+                {
+                    logger.Info("Got new job.");
+                    jd.TrackerGuid = data.Guid;
+                    manager.AddNewJob(jd);
+                    logger.Info("Added new job to manager.");
 
-                logger.Debug("Added new job to manager.");
-            }
-            else
+                    // stop job checkouts until we request another job.
+                    jobCheckFreqMillis = 0;
+                }
+                else
+                {
+                    jobCheckFreqMillis = 1000;
+                    logger.Debug("No new jobs on orchestrator, checking back in one second.");
+                }
+            } 
+            catch (EndpointNotFoundException e)
             {
-                checkJobTimer.Change(1000, Timeout.Infinite);
-                logger.Debug("No new jobs on orchestrator, checking back in one second.");
+                logger.Error("Orchestrator not found when requesting new job.", e);
+                jobCheckFreqMillis = 5000;
+            }
+            finally
+            {
+                checkJobTimer.Change(jobCheckFreqMillis, Timeout.Infinite);
             }
         }
 
@@ -251,5 +295,7 @@ namespace EnvwsTracker
             Console.WriteLine("Usage: TrackProcessService.exe <config-file>");
         }
 
+
+        public bool JobNeedsReturning { get; set; }
     } // TrackProcessClient
 }

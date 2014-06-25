@@ -9,7 +9,7 @@ workingDir = C:\ews_working
 resultsAppendStr = _results
 
 ; Path to the envision executable.
-envExePath = \\infoserv2\envws\deploy\envision\envision.exe
+envExePath = \\documents-and-settings\envws\deploy\envision\envision.exe
 
 ; directory to create and copy job logs into
 resultsLogDir = job_logs

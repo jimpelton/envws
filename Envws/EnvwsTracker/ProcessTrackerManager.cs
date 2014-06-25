@@ -190,7 +190,7 @@ namespace EnvwsTracker
                 this.logger.Info("Job finished." + job.Guid);
 
                 //send job completed event
-                var args = new JobCompletedEventArgs { JobData = job };
+                var args = new JobCompletedEventArgs { Job = job };
                 OnJobCompleted(args);
             }
             this.logger.Info("Watch loop exiting.");
