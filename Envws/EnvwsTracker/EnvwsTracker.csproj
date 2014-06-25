@@ -166,8 +166,6 @@
     <None Include="configs\service.config.sample" />
     <None Include="configs\service.config.vm" />
     <None Include="Properties\app.manifest" />
-    <None Include="Properties\DataSources\TrackProcessLib.Job.JobData.datasource" />
-    <None Include="Properties\DataSources\TrackProcessLib.JobData.datasource" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
