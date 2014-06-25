@@ -32,7 +32,8 @@ namespace EnvwsTracker
         private static Timer pingTimer;
         private static Timer checkJobTimer;
         private static string machineName = string.Empty;
-        private static int jobCheckFreqMillis = 1000;
+        private static int RequestJobFreqMillis { get; set; }
+        private static int CheckInFreqMillis { get; set; }
 
         private static IList<JobData> completedJobs = new List<JobData>();
         private static JobData JobToBeReturned = null;
@@ -128,6 +129,10 @@ namespace EnvwsTracker
             bool rval = false;
             try
             {
+                if (JobNeedsReturning)
+                {
+
+                }
                 Client.ReturnFinishedJob(job);
                 JobToBeReturned = null;
                 JobNeedsReturning = false;
@@ -136,7 +141,7 @@ namespace EnvwsTracker
             catch (EndpointNotFoundException e)
             {
                 logger.Error("Orchestrator not found when returning new job.", e);
-                jobCheckFreqMillis = 5000;
+                RequestJobFreqMillis = 5000;
                 JobNeedsReturning = true;
                 JobToBeReturned = job;
             }
@@ -160,34 +165,34 @@ namespace EnvwsTracker
                     logger.Info("Added new job to manager.");
 
                     // stop job checkouts until we request another job.
-                    jobCheckFreqMillis = 0;
+                    RequestJobFreqMillis = 0;
                 }
                 else
                 {
-                    jobCheckFreqMillis = 1000;
+                    RequestJobFreqMillis = 1000;
                     logger.Debug("No new jobs on orchestrator, checking back in one second.");
                 }
             } 
             catch (EndpointNotFoundException e)
             {
                 logger.Error("Orchestrator not found when requesting new job.", e);
-                jobCheckFreqMillis = 5000;
+                RequestJobFreqMillis = 5000;
             }
             finally
             {
-                checkJobTimer.Change(jobCheckFreqMillis, Timeout.Infinite);
+                checkJobTimer.Change(RequestJobFreqMillis, Timeout.Infinite);
             }
         }
 
         private void OnPingTimer(object state)
         {
             DoCheckIn();
-            pingTimer.Change(1000, Timeout.Infinite);
+            pingTimer.Change(CheckInFreqMillis, Timeout.Infinite);
         }
 
         private void StartPingLoop()
         {
-            pingTimer.Change(1000, Timeout.Infinite);
+            pingTimer.Change(CheckInFreqMillis, Timeout.Infinite);
             logger.Info("Starting ping loop.");
         }
 
