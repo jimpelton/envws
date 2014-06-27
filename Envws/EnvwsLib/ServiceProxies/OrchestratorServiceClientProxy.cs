@@ -42,6 +42,11 @@ namespace EnvwsLib.ServiceProxies
         public EnvwsLib.DataContracts.TrackerData[] TrackerStatus() {
             return base.Channel.TrackerStatus();
         }
+
+        public EnvwsLib.DataContracts.JobData[] AllJobs()
+        {
+            return base.Channel.AllJobs();
+        }
         
         public bool Ping() {
             return base.Channel.Ping();

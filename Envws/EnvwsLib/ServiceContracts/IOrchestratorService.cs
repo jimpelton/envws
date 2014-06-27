@@ -22,6 +22,9 @@ namespace EnvwsLib.ServiceContracts
 
         [OperationContract]
         TrackerData[] TrackerStatus();
+
+        [OperationContract]
+        JobData[] AllJobs();
         
         [OperationContract]
         bool Ping();

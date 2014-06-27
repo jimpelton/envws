@@ -19,6 +19,7 @@ namespace ConsoleClient
         private string orchestratorIpAddr;
         private ManualResetEvent manualResetEvent;
         private List<TrackerData> datas;
+        private static object _datasMutex = new object();
 
         public ConsoleClient()
         {
@@ -46,10 +47,17 @@ namespace ConsoleClient
             manualResetEvent.Set();
         }
 
+        
         public TrackerData[] GetTrackerData()
         {
             manualResetEvent.WaitOne();
-            return datas.ToArray();
+            TrackerData[] rval;
+            lock (_datasMutex)
+            {
+                rval = datas.ToArray();
+            }
+
+            return rval;
         }
 
         public void SubmitJob(string envxFileName, string sourceUri, string resultsUri, string friendlyName, int[] scenarios)

@@ -123,6 +123,20 @@ namespace ConsoleClient
                 }
             }
         }
+        
+        private static void DoJobList(ConsoleClient cc)
+        {
+            cc.Init();
+            List<TrackerData> data = new List<TrackerData>(cc.GetTrackerData());
+            if (data.Count==0)
+            {
+                Console.WriteLine("No Jobs.");
+            }
+            else
+            {
+                
+            }
+        }
 
         private static void DoSubmitJob(ConsoleClient cc, string[] cmdArgs)
         {

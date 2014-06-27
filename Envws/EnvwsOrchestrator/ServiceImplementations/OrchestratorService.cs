@@ -33,6 +33,11 @@ namespace EnvwsOrchestrator
             return trackerData;
         }
 
+        public JobData[] AllJobs()
+        {
+            return TrackerQueue.GetAllJobs();
+        }
+
         public bool Ping()
         {
             return true;

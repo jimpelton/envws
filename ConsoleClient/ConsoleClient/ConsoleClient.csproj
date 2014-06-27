@@ -128,9 +128,6 @@
     <None Include="Properties\DataSources\TrackProcessLib.TrackerData.datasource" />
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\Envws\ClientLib\ClientLib.csproj">
       <Project>{2ce58f59-ad5a-41c7-8c2b-7ce717231655}</Project>
       <Name>ClientLib</Name>

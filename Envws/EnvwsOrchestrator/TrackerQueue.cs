@@ -10,6 +10,7 @@ namespace EnvwsOrchestrator
 	using EnvwsLib.Util;
     using EnvwsLib.Tracker;
     using EnvwsLib.DataContracts;
+    using System.Collections.Generic;
 
     public class TrackerQueue
     {
@@ -126,6 +127,15 @@ namespace EnvwsOrchestrator
             JobData n;
             finishedJobs.TryAdd(Guid.Parse(j.Guid), j);
             runningJobs.TryRemove(Guid.Parse(j.Guid), out n);
+        }
+
+        public JobData[] GetAllJobs()
+        {
+            List<JobData> jobs = new List<JobData>();
+            jobs.AddRange(finishedJobs.Values);
+            jobs.AddRange(runningJobs.Values);
+            jobs.AddRange(waitingJobs);
+            return jobs.ToArray();     
         }
 
         /// <summary>
