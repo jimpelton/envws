@@ -27,7 +27,7 @@ namespace EnvwsLib.DataContracts
         /// tracker for this TrackerData.
         /// </summary>
         [DataMember]
-        public string Uri { get; set; }
+        public string HostName { get; set; }
 
         /// <summary>
         /// Gets or sets the TrackerStatus of the tracker represented by
@@ -61,7 +61,7 @@ namespace EnvwsLib.DataContracts
         public TrackerData()
         {
             Guid = string.Empty;
-            Uri = string.Empty;
+            HostName = string.Empty;
             Status = TrackerStatus.IDLE;
             LastCheckinTime = -1;
             CurrentJob = JobData.EmptyJob;
@@ -87,7 +87,7 @@ namespace EnvwsLib.DataContracts
             TrackerData copy = new TrackerData()
             {
                 Guid = string.Copy(rhs.Guid),
-                Uri = string.Copy(rhs.Uri),
+                HostName = string.Copy(rhs.HostName),
                 Status = rhs.Status,
                 LastCheckinTime = rhs.LastCheckinTime,
                 CurrentJob = JobData.DeepCopy(rhs.CurrentJob) ?? JobData.EmptyJob

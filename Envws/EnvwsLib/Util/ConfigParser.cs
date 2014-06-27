@@ -42,6 +42,10 @@ namespace EnvwsLib.Util
             {
                 return confOpts[key].ElementAt(0); 
             }
+			set
+            {
+                (confOpts[key] = new List<string>()).Add(value);
+            }
         }
 
         /// <summary>
@@ -81,6 +85,13 @@ namespace EnvwsLib.Util
         public void AddOpts(IDictionary<string, IList<string>> opts)
         {
             confOpts = opts;
+        }
+
+		public ConfigParser SetDefaultOptValue(string key, string value)
+        {
+            this[key] = value;
+
+            return this;
         }
 
 		public string GetFormatedOptionsString()

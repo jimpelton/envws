@@ -267,6 +267,7 @@ namespace EnvwsTracker
                 try
                 {
                     Directory.CreateDirectory(projectDir);
+
                     this.logger.Info("Created new directory for source project: " + projectDir);
                 }
                 catch (Exception ex)
@@ -313,8 +314,9 @@ namespace EnvwsTracker
                 using (WebClient client = new WebClient())
                 {
                     this.logger.Info("Starting download from: " + projectSourceUri);
-                    Uri uri = new Uri(projectSourceUri);
-                    client.DownloadFile(uri, zipFilePath);
+                    Uri srcUri = new Uri(projectSourceUri);
+                    Uri zipUri = new Uri(zipFilePath);
+                    client.DownloadFile(srcUri, zipFilePath);
                     this.logger.Info("Done downloading.");
                 }
 
@@ -375,9 +377,10 @@ namespace EnvwsTracker
             {
                 using (WebClient client = new WebClient())
                 {
-                    string uri = Path.Combine(projectResultsUri, zipname);
-                    this.logger.Info("Starting upload of finished job to " + uri);
-                    client.UploadFile(uri, zippath);
+                    string z = Path.Combine(projectResultsUri, zipname);
+                    Uri zipPath = new Uri(z);
+                    this.logger.Info("Starting upload of finished job to " + z);
+                    client.UploadFile(z, zippath);
                 }
             } 
            catch (WebException e)

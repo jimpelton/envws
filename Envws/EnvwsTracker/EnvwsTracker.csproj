@@ -156,6 +156,7 @@
     <Compile Include="ProcessTrackerManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RepoVer.cs" />
+    <Compile Include="TrackerJobData.cs" />
     <Compile Include="TrackProcessClient.cs" />
   </ItemGroup>
   <ItemGroup>

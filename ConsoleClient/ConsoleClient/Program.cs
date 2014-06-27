@@ -109,7 +109,7 @@ namespace ConsoleClient
                 int running = data.Count(td => td.Status == TrackerStatus.RUNNING);
                 int down = data.Count(td => td.Status == TrackerStatus.NO_RESPONSE || td.Status == TrackerStatus.UNKNOWN);
                 int idle = data.Count(td => td.Status == TrackerStatus.IDLE);
-
+				
                 Console.WriteLine(data.Count + " registered trackers.");
 				Console.WriteLine(running + " running.");
 				Console.WriteLine(down + " down.");
@@ -117,32 +117,34 @@ namespace ConsoleClient
 
                 foreach (TrackerData td in data)
                 {
-                    Console.WriteLine(td.Uri + " " + td.Status);
+                    string jobName = td.CurrentJob.FriendlyName == string.Empty ? td.CurrentJob.Guid : td.CurrentJob.FriendlyName;
+					string msg = string.Format("{0} {1}\t{2}", td.HostName, td.Status, jobName);
+                    Console.WriteLine(msg);
                 }
             }
         }
 
-        private static void DoSubmitJob(ConsoleClient cc, string[] args)
+        private static void DoSubmitJob(ConsoleClient cc, string[] cmdArgs)
         {
-            if (args.Length < 5)
+            if (cmdArgs.Length <= 3)
             {
                 usage(Commands["s"].Cmd);
             }
             else
             {
-                string friendlyName = args[1];
-                string envxName = args[2];
-                string sourceUri = args[3];
-                string resultsUri = args[4];
+                string friendlyName = cmdArgs[0];
+                string envxName = cmdArgs[1];
+                string sourceUri = cmdArgs[2];
+                string resultsUri = cmdArgs[3];
                 int[] scenarios;
 
-                if (args[5] == null)
+                if (cmdArgs.Length <= 4)
                 {
                     scenarios = new int[] { 0 };
                 }
                 else
                 {
-                    string scenariosString = args[5];
+                    string scenariosString = cmdArgs[4];
                     scenarios = scenariosString.Split(',')
                         .Select(numStr => 
 							{ 

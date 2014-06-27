@@ -73,7 +73,7 @@ namespace ClientLib.Client
 		/// <param name="sourceUri"></param>
 		/// <param name="friendlyName"></param>
 		/// <param name="scenarios"></param>
-        public void SubmitJob(string envxFileName, string resultsUri, string sourceUri, string friendlyName, int[] scenarios)
+        public void SubmitJob(string envxFileName, string sourceUri, string resultsUri, string friendlyName, int[] scenarios)
         {
             JobData job = new JobData
             {
