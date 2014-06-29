@@ -1,5 +1,6 @@
 package Orchestrator;
 
+import DataObjects.JobData;
 import DataObjects.TrackerData;
 import ServiceStubs.OrchestratorServiceStub;
 import org.apache.log4j.Logger;
@@ -12,7 +13,6 @@ import java.rmi.registry.Registry;
 import java.rmi.server.RMIClientSocketFactory;
 import java.rmi.server.RMIServerSocketFactory;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /**
  * @author jim
@@ -58,9 +58,17 @@ public class OrchestratorService implements OrchestratorServiceStub {
     //////////////////////////////////////////////
 
     @Override
-    public boolean ping(TrackerData data) {
-        return true;
+    public void submitJob(JobData job) {
+
     }
 
+    @Override
+    public JobData[] getAllJobs() {
+        return new JobData[0];
+    }
 
+    @Override
+    public TrackerData[] getAllTrackers() {
+        return new TrackerData[0];
+    }
 }

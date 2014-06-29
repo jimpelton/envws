@@ -4,6 +4,7 @@ import DataObjects.JobData;
 import DataObjects.TrackerData;
 
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 /**
  * @author jim
@@ -11,7 +12,7 @@ import java.rmi.Remote;
  * @date 6/28/14
  */
 public interface JobRequestServiceStub extends Remote {
-    boolean ping(TrackerData tracker);
-    JobData requestJob();
-    boolean returnJob(JobData job);
+    boolean ping(TrackerData tracker) throws RemoteException;
+    JobData requestJob() throws RemoteException;
+    boolean returnJob(JobData job) throws RemoteException;
 }

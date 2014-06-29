@@ -80,19 +80,21 @@ public class JobData implements Serializable {
          
         public long JobPrivateWorkingSetSize = Long.MIN_VALUE;
 
-        public static JobData emptyJob() { return _emptyJob; }
+        public static JobData emptyJob() {
+            return _emptyJob;
+        }
+
         private static final JobData _emptyJob = new JobData();
 
         private JobData() { }
 
-        public JobData(UUID jobId)
-        {
+        public JobData(UUID jobId) {
             this.uuid = jobId;
         }
 
 
-        public static JobData deepCopy(JobData rhs)
-        {
+        public static JobData deepCopy(JobData rhs) {
+
             if (rhs == null) return null;
 
             JobData copy = new JobData();
@@ -209,7 +211,9 @@ public class JobData implements Serializable {
 
     @Override
     public boolean equals(Object o) {
+
         if (this == o) return true;
+
         if (o == null || getClass() != o.getClass()) return false;
 
         JobData jobData = (JobData) o;
@@ -220,8 +224,7 @@ public class JobData implements Serializable {
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         return getUuid().hashCode();
     }
 

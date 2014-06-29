@@ -1,7 +1,7 @@
 import Orchestrator.JobsManager;
 import Orchestrator.OrchestratorService;
 import Orchestrator.TrackerManager;
-import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory;
+import Tracker.Tracker;
 import org.apache.commons.cli.*;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.LogManager;
@@ -10,10 +10,7 @@ import org.apache.log4j.Logger;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
 
 /**
  * @author jim
@@ -29,65 +26,109 @@ public class Jenvws {
             = LogManager.getLogger(Jenvws.class.getName());
 
     private String nodeType = EmptyString;
-    private String rmiIp    = EmptyString;
-    private String rmiPort  = EmptyString;
+//    private String rmiIp    = EmptyString;
+//    private String rmiPort  = EmptyString;
 
 
-    private Options makeOptions() {
-        Option help = new Option("help", "print this help message");
-        Option version = new Option("version", "print version information");
+    private Options makeGeneralOptions() {
+
+        Option help = new Option("h", "help", false, "print this help message");
+        Option version = new Option("v", "version", false, "print version information");
 
         Option nodeType = OptionBuilder
                 .withArgName("node type")
                 .hasArg()
                 .isRequired()
                 .withDescription("orch or tracker")
-                .withLongOpt("nodetype")
-                .create("t");
+                .create("type");
+
+        Options options = new Options();
+        options.addOption(nodeType);
+
+        return options;
+    }
+
+    private Options makeOrchestratorOptions() {
 
         Option rmiIp = OptionBuilder
                 .withArgName("ip addr")
                 .hasArg()
-                .isRequired()
                 .withDescription("The ip address of the rmi server.")
-                .withLongOpt("rmiIp")
-                .create("r");
+                .create("rmiIp");
 
         Option rmiPort = OptionBuilder
                 .withArgName("port")
                 .hasArg()
                 .withDescription("Port for rmi server")
-                .withLongOpt("rmiPort")
-                .create("p");
+                .create("rmiPort");
 
-        Options options = new Options();
-        options.addOption(nodeType).addOption(rmiIp).addOption(rmiPort);
+        Options orchOpts = new Options();
+        orchOpts.addOption(rmiIp).addOption(rmiPort);
 
-        return options;
+        return orchOpts;
     }
 
-    private void doOrchestrator() {
+    private Options makeTrackerOptions() {
+
+        Option orchIp  = OptionBuilder
+                .withArgName("ip addr")
+                .hasArg()
+                .withDescription("The ip address of the orchestrator.")
+                .create("orchIp");
+
+        Option orchPort = OptionBuilder
+                .withArgName("port")
+                .hasArg()
+                .withDescription("Port for orchestrator.")
+                .create("orchPort");
+
+        Options trackOpts = new Options();
+        trackOpts.addOption(orchIp).addOption(orchPort);
+
+        return trackOpts;
+    }
+
+    private void doOrchestrator(CommandLine line) {
+
         logger.info("Starting orchestrator.");
+
         try {
+
+            String rmiIp = EmptyString,
+                    rmiPort = EmptyString;
+
+            if (line.hasOption("rmiIp")) {
+                rmiIp = line.getOptionValue("rmiIp");
+            }
+
+            if (line.hasOption("rmiPort")) {
+                rmiPort = line.getOptionValue("rmiPort");
+            }
+
             InetAddress ipAddr;
-            int portNumber;
             if (!rmiIp.equals(EmptyString)) {
                 ipAddr = InetAddress.getByName(rmiIp);
             } else {
-                ipAddr = InetAddress.getByName("localhost");
-            }
-            if (!rmiPort.equals(EmptyString)) {
-                portNumber = Integer.parseInt(rmiPort);
-            } else {
-                portNumber = 12290;
+                ipAddr = InetAddress.getLocalHost();
             }
 
+            int portNumber = 12290;
+            if (!rmiPort.equals(EmptyString)) {
+                try{
+                    portNumber = Integer.parseInt(rmiPort);
+                } catch (NumberFormatException e) {
+                    String msg = String.format("Invalid port given for rmiPort: %s. Using default: %d", rmiPort, portNumber);
+                    logger.error(msg);
+                }
+            }
+
+            logger.info(String.format("RMI IP: %s, RMI PORT: %d", ipAddr.toString(), portNumber));
             JobsManager jom = new JobsManager();
             TrackerManager trm = new TrackerManager(1000);
             OrchestratorService service = new OrchestratorService(ipAddr, portNumber, jom, trm);
 
             service.bind("OrchestratorService");
-            logger.info("Bound to rmi registry");
+            //logger.info("Bound to rmi registry");
 
         } catch (UnknownHostException e) {
             logger.fatal("Could not find host given for RMI IP.", e);
@@ -99,39 +140,90 @@ public class Jenvws {
 
     }
 
-    private void doTracker() {
-        logger.info("Starting tracker.");
-    }
+    private void doTracker(CommandLine line) {
 
-    public static void main(String[] args) {
-        BasicConfigurator.configure();
-        new Jenvws().doMain(args);
+        logger.info("Starting tracker.");
+
+        try {
+            String orchIp = EmptyString, orchPort = EmptyString;
+            InetAddress ipAddr;
+            int portNumber;
+
+            if (line.hasOption("orchIp")) {
+                orchIp = line.getOptionValue("orchIp");
+            }
+
+//            if (line.hasOption("orchPort")) {
+//                orchPort = line.getOptionValue("orchPort");
+//            }
+
+            if (!orchIp.equals(EmptyString)) {
+                ipAddr = InetAddress.getByName(orchIp);
+            } else {
+                ipAddr = InetAddress.getLocalHost();
+            }
+
+            if (!orchPort.equals(EmptyString)) {
+                portNumber = Integer.parseInt(orchPort);
+            } else {
+                portNumber = 12290;
+            }
+
+            String hostname = InetAddress.getLocalHost().getHostName().toString();
+            Tracker tr = new Tracker(hostname, ipAddr, portNumber);
+
+        } catch (UnknownHostException e) {
+            logger.fatal("Could not find host given for RMI IP.", e);
+            System.exit(0);
+        } catch (NumberFormatException e) {
+            logger.fatal("That was such a bad port number!", e);
+            System.exit(0);
+        }
     }
 
     public void doMain(String[] args) {
+
         CommandLineParser parser = new BasicParser();
         CommandLine line;
-        try{
-            line = parser.parse(makeOptions(), args);
-            if (line.hasOption('t')) {
-                nodeType = line.getOptionValue('t');
+        Options options = makeGeneralOptions();
+
+        for (Object o : makeOrchestratorOptions().getOptions())
+            options.addOption((Option)o);
+
+        for (Object o : makeTrackerOptions().getOptions())
+            options.addOption((Option)o);
+
+
+        try {
+
+            line = parser.parse(options, args);
+
+            if (line.hasOption("type")) {
+                nodeType = line.getOptionValue("type");
             }
 
-            if (line.hasOption('r')) {
-                rmiIp = line.getOptionValue('r');
-            }
+            if (nodeType.equals("orch"))
+                doOrchestrator(line);
+            else if (nodeType.equals("tracker"))
+                doTracker(line);
 
-            if (line.hasOption('p')) {
-                rmiPort = line.getOptionValue('p');
-            }
         } catch (ParseException e) {
-            logger.fatal("Bad cmd options!");
-            System.exit(0);
-        }
+            System.err.println(e.getMessage());
+            new HelpFormatter().printHelp(80, "jenvws", ":D", options, ":D");
 
-        if (nodeType.equals("orch"))
-            doOrchestrator();
-        else if (nodeType.equals("tracker"))
-            doTracker();
+            System.exit(1);
+        } catch (Exception e) {
+            logger.fatal("peep!", e);
+            System.exit(1);
+        }
     }
+
+    public static void main(String[] args) {
+
+        BasicConfigurator.configure();
+        new Jenvws().doMain(args);
+
+    }
+
+
 }

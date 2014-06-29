@@ -4,6 +4,7 @@ import DataObjects.JobData;
 import DataObjects.TrackerData;
 
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 /**
  * @author jim
@@ -11,9 +12,7 @@ import java.rmi.Remote;
  * @date 6/27/14
  */
 public interface OrchestratorServiceStub extends Remote {
-    //boolean ping(TrackerData data);
-    void submitJob(JobData job);
-    JobData[] getAllJobs();
-    TrackerData[] getAllTrackers();
-
+    void submitJob(JobData job) throws RemoteException;
+    JobData[] getAllJobs() throws RemoteException;
+    TrackerData[] getAllTrackers() throws RemoteException;
 }

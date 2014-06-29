@@ -24,13 +24,13 @@ public class JobScheduler {
 
     private ArrayList<ScheduledFuture<?>> scheduledFutures  = new ArrayList<>();
 
-    public static int submitRecurring(Callable<Boolean> c, int initialDelayMillis, int repeatAfterMillis) {
+    public static int submitRecurring(Runnable c, int initialDelayMillis, int repeatAfterMillis) {
         if (myself == null) myself = new JobScheduler();
 
         ScheduledFuture fu = myself.executor.scheduleAtFixedRate(() -> {
 
             try {
-                c.call();
+                c.run();
             } catch (Exception e) {
                 logger.error(e);
             }
@@ -42,11 +42,10 @@ public class JobScheduler {
         return myself.scheduledFutures.size()-1;
     }
 
-    public static int submitOneShot(Callable<Boolean> c, int delayMillis) {
+    public static int submitOneShot(Callable c, int delayMillis) {
         if (myself == null) myself = new JobScheduler();
 
-        ScheduledFuture<Boolean> fu = myself.executor.schedule(c, delayMillis, TimeUnit.MILLISECONDS);
-
+        ScheduledFuture fu = myself.executor.schedule(c, delayMillis, TimeUnit.MILLISECONDS);
         myself.scheduledFutures.add(fu);
 
         return myself.scheduledFutures.size()-1;

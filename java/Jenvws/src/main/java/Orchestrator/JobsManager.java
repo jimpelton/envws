@@ -21,6 +21,7 @@ public class JobsManager {
     private final Object _jobsListMutex = new Object();
 
     public void pushJob(JobData job) {
+
         synchronized (_jobsListMutex) {
             waitingJobs.add(job);
             allJobs.put(job.getUuid(), job);
@@ -30,9 +31,11 @@ public class JobsManager {
     }
 
     public JobData getJob() {
+
         JobData rval = JobData.emptyJob();
 
         synchronized (_jobsListMutex) {
+
             if (waitingJobs.size() > 0) {
                 rval = waitingJobs.remove(0);
             }
@@ -42,6 +45,7 @@ public class JobsManager {
     }
 
     public boolean returnJob(JobData job) {
+
         boolean rval = false;
         JobData actual;
 
@@ -61,6 +65,7 @@ public class JobsManager {
     }
 
     public List<JobData> getAllJobs() {
+
         List<JobData> rval = new ArrayList<JobData>();
 
         synchronized (_jobsListMutex){
