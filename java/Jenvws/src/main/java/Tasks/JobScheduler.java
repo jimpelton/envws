@@ -24,10 +24,24 @@ public class JobScheduler {
 
     private ArrayList<ScheduledFuture<?>> scheduledFutures  = new ArrayList<>();
 
-    public static int submitRecurring(Runnable c, int initialDelayMillis, int repeatAfterMillis) {
-        if (myself == null) myself = new JobScheduler();
+    private void scheduledFuturesListScrubber() {
+        scheduledFutures.removeIf(v -> v.isDone());
+    }
 
-        ScheduledFuture fu = myself.executor.scheduleAtFixedRate(() -> {
+    private JobScheduler() { }
+
+    public static JobScheduler Instance() {
+        if (myself == null) {
+            myself = new JobScheduler();
+            myself.submitRecurring(myself::scheduledFuturesListScrubber, 5000, 5000);
+        }
+
+        return myself;
+    }
+
+    public int submitRecurring(Runnable c, int initialDelayMillis, int repeatAfterMillis) {
+
+        ScheduledFuture fu = myself.executor.scheduleWithFixedDelay(() -> {
 
             try {
                 c.run();
@@ -42,7 +56,7 @@ public class JobScheduler {
         return myself.scheduledFutures.size()-1;
     }
 
-    public static int submitOneShot(Callable c, int delayMillis) {
+    public int submitOneShot(Callable c, int delayMillis) {
         if (myself == null) myself = new JobScheduler();
 
         ScheduledFuture fu = myself.executor.schedule(c, delayMillis, TimeUnit.MILLISECONDS);
@@ -51,7 +65,7 @@ public class JobScheduler {
         return myself.scheduledFutures.size()-1;
     }
 
-    public static void cancel(int index) {
+    public void cancel(int index) {
         if (myself==null) myself=new JobScheduler();
 
         myself.scheduledFutures.get(index).cancel(false);

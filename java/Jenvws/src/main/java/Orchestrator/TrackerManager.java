@@ -131,4 +131,8 @@ public class TrackerManager {
         td.setStatus(TrackerStatus.IDLE);
         updateTracker(td);
     }
+
+    public List<TrackerData> getAllTrackers() {
+        return new ArrayList<>(allTrackers);
+    }
 }
