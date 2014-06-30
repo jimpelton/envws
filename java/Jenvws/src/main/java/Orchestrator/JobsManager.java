@@ -21,7 +21,6 @@ public class JobsManager {
     private final Object _jobsListMutex = new Object();
 
     public void pushJob(JobData job) {
-
         synchronized (_jobsListMutex) {
             waitingJobs.add(job);
             allJobs.put(job.getUuid(), job);
@@ -31,11 +30,10 @@ public class JobsManager {
     }
 
     /**
-     *
-     * @return
+     * Gets a job that is waiting to be processed.
+     * @return A JobData, or the emptyJob if no jobs exist
      */
     public JobData getJob() {
-
         JobData rval = JobData.emptyJob();
 
         synchronized (_jobsListMutex) {
@@ -48,28 +46,18 @@ public class JobsManager {
     }
 
     /**
-     *
-     * @param job
+     * Returns a job that has just been worked on back to the jobs pool.
+     * @param job A job that has been processed.
      * @return
      */
     public boolean returnJob(JobData job) {
-
-        boolean rval = false;
         JobData actual;
 
         synchronized (_jobsListMutex) {
             actual = allJobs.replace(job.getUuid(), job);
         }
 
-        if (actual != null) {
-            rval = true;
-        } else {
-            String msg = "Tracker %s tried to return JobData %s (%s), " +
-                    "but that job was never actually submitted.";
-            logger.error(String.format(msg, job.getTrackerUuid(), job.getFriendlyName(), job.getUuid()));
-        }
-
-        return rval;
+        return actual != null;
     }
 
     /**
@@ -77,7 +65,6 @@ public class JobsManager {
      * @return
      */
     public List<JobData> getAllJobs() {
-
         List<JobData> rval = new ArrayList<JobData>();
 
         synchronized (_jobsListMutex) {

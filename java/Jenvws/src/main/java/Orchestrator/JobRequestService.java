@@ -44,14 +44,33 @@ public class JobRequestService implements JobRequestServiceStub {
     @Override
     public JobData requestJob() {
         JobData rval;
+
         rval = jobsManager.getJob();
+        logger.info("Handing out job: %s (%s).");
 
         return rval;
     }
 
+    /**
+     *
+     * @param job The job to be returned.
+     * @return true if job returned, false if no previous record of this job exists.
+     */
     @Override
     public boolean returnJob(JobData job) {
-        return jobsManager.returnJob(job);
+        boolean rval;
+
+        rval = jobsManager.returnJob(job);
+        if (rval) {
+            logger.info(String.format("Job %s (%s) returned from tracker %s (%s).", job.getFriendlyName(),
+                    job.getUuid(), "", job.getTrackerUuid() ));
+        } else {
+            String msg = "Tracker %s tried to return JobData %s (%s), " +
+                    "but that job was never actually submitted.";
+            logger.error(String.format(msg, job.getTrackerUuid(), job.getFriendlyName(), job.getUuid()));
+        }
+
+        return rval;
     }
 
     @Override

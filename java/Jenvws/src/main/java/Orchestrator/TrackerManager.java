@@ -70,12 +70,12 @@ public class TrackerManager {
      *
      */
     public void startScrubLoop() {
-        JobScheduler.submitRecurring(this::scrubTrackerList, scrubDelay, scrubDelay);
+        JobScheduler.Instance().submitRecurring(this::scrubTrackerList, scrubDelay, scrubDelay);
     }
 
     /**
      *
-     * @param td
+     * @param td The trackerk to add.
      */
     public void addTracker(TrackerData td) {
 

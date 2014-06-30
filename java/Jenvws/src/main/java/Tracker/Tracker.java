@@ -5,7 +5,6 @@ import DataObjects.JobData;
 import DataObjects.TrackerData;
 import DataObjects.TrackerStatus;
 import ServiceStubs.JobRequestServiceStub;
-import ServiceStubs.OrchestratorServiceStub;
 import Tasks.JobScheduler;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -32,6 +31,8 @@ public class Tracker {
     private TrackerData trackerData;
     private JobRequestServiceStub orchestrator;
 
+    private int pingLoopJobIndex;
+
     public Tracker(String hostname, InetAddress orchAddr, int orchPort) {
         this.orchAddr = orchAddr;
         this.orchPort = orchPort;
@@ -47,22 +48,28 @@ public class Tracker {
     }
 
     public void startPingLoop() {
-        JobScheduler.submitRecurring(this::ping, 1000, 1000);
+        pingLoopJobIndex = JobScheduler.Instance().submitRecurring(this::ping, 1000, 1000);
     }
 
-    public void ping() {
+    /* ping the orchestrator */
+    private void ping() {
         logger.trace("");
         try {
             orchestrator.ping(this.trackerData);
-            logger.info("pinged.");
+            logger.trace("Pinged orchcestrator");
         } catch (RemoteException e) {
             logger.error(e);
         }
 
     }
 
+    /**
+     * Request a new job from the orchestrator.
+     * @return Returns null if no job is on the orchestrator.
+     * @throws RemoteException
+     */
     public JobData requestJob() throws RemoteException {
-        return JobData.emptyJob();
+        return orchestrator.requestJob();
     }
 
     public boolean returnJob(JobData job) throws RemoteException {
