@@ -3,6 +3,9 @@ package Orchestrator;
 import DataObjects.JobData;
 import DataObjects.TrackerData;
 import ServiceStubs.JobRequestServiceStub;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 
 /**
  * Service for supporting tracker operations such as job requests and checkin (ping).
@@ -10,7 +13,8 @@ import ServiceStubs.JobRequestServiceStub;
  * @class JobRequestService
  * @date 6/28/14
  */
-public class JobRequestService implements JobRequestServiceStub{
+public class JobRequestService implements JobRequestServiceStub {
+    private static Logger logger = LogManager.getLogger(JobRequestService.class.getName());
 
     private JobsManager jobsManager;
     private TrackerManager trackerManager;
@@ -20,8 +24,15 @@ public class JobRequestService implements JobRequestServiceStub{
         this.trackerManager = trackerManager;
     }
 
+    //////////////////////////////////////////////
+    //   R M I   H A N D L E R S                //
+    //////////////////////////////////////////////
+
     @Override
-    public boolean ping(TrackerData tracker) {
+    public boolean ping(TrackerData td) {
+        trackerManager.updateTracker(td);
+        logger.trace("Got pinged: " + td.getHostName() + " (" + td.getUuid().toString()+")");
+
         return true;
     }
 
@@ -34,11 +45,18 @@ public class JobRequestService implements JobRequestServiceStub{
     public JobData requestJob() {
         JobData rval;
         rval = jobsManager.getJob();
+
         return rval;
     }
 
     @Override
     public boolean returnJob(JobData job) {
-        return false;
+        return jobsManager.returnJob(job);
+    }
+
+    @Override
+    public void register(TrackerData td) {
+        td.setLastCheckinTime(System.currentTimeMillis());
+        trackerManager.addTracker(td);
     }
 }

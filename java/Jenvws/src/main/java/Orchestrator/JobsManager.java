@@ -30,12 +30,15 @@ public class JobsManager {
         logger.info("Put job " + job.getUuid() + " in the queue.");
     }
 
+    /**
+     *
+     * @return
+     */
     public JobData getJob() {
 
         JobData rval = JobData.emptyJob();
 
         synchronized (_jobsListMutex) {
-
             if (waitingJobs.size() > 0) {
                 rval = waitingJobs.remove(0);
             }
@@ -44,6 +47,11 @@ public class JobsManager {
         return rval;
     }
 
+    /**
+     *
+     * @param job
+     * @return
+     */
     public boolean returnJob(JobData job) {
 
         boolean rval = false;
@@ -64,11 +72,15 @@ public class JobsManager {
         return rval;
     }
 
+    /**
+     *
+     * @return
+     */
     public List<JobData> getAllJobs() {
 
         List<JobData> rval = new ArrayList<JobData>();
 
-        synchronized (_jobsListMutex){
+        synchronized (_jobsListMutex) {
             rval.addAll(allJobs.values());
         }
 

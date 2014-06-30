@@ -22,35 +22,12 @@ import java.rmi.server.UnicastRemoteObject;
 public class OrchestratorService implements OrchestratorServiceStub {
     private Logger logger = Logger.getLogger(OrchestratorService.class.getName());
 
-    private final int MAX_LATE_MILLIES = 2500;
-
-    private TrackerManager trackerManager = new TrackerManager(MAX_LATE_MILLIES);
-
+    private TrackerManager trackerManager;
     private JobsManager jobsManager;
 
-
-    private InetAddress rmiIp;
-    private int rmiPort;
-
-    public OrchestratorService(InetAddress rmiIp, int rmiPort, JobsManager jom, TrackerManager trm) {
-        this.rmiIp = rmiIp;
-        this.rmiPort = rmiPort;
+    public OrchestratorService(JobsManager jom, TrackerManager trm) {
         this.jobsManager = jom;
         this.trackerManager = trm;
-    }
-
-    public void bind(String name) {
-        try {
-            RMIClientSocketFactory rmiClientSocketFactory = new SslRMIClientSocketFactory();
-            RMIServerSocketFactory rmiServerSocketFactory = new SslRMIServerSocketFactory();
-            OrchestratorServiceStub ccAuth = (OrchestratorServiceStub) UnicastRemoteObject.exportObject(this, 0,
-                    rmiClientSocketFactory, rmiServerSocketFactory);
-            Registry registry = LocateRegistry.createRegistry(rmiPort);
-            registry.rebind(name, ccAuth);
-            logger.info(name + " bound in registry");
-        } catch (Exception e) {
-            logger.error("Unable to bind to the registry", e);
-        }
     }
 
     //////////////////////////////////////////////
@@ -59,12 +36,12 @@ public class OrchestratorService implements OrchestratorServiceStub {
 
     @Override
     public void submitJob(JobData job) {
-
+        jobsManager.pushJob(job);
     }
 
     @Override
     public JobData[] getAllJobs() {
-        return new JobData[0];
+        return jobsManager.getAllJobs().toArray(new JobData[0]);
     }
 
     @Override

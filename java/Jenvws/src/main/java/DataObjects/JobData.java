@@ -80,6 +80,8 @@ public class JobData implements Serializable {
          
         public long JobPrivateWorkingSetSize = Long.MIN_VALUE;
 
+        private JobStatus jobStatus = JobStatus.NONE;
+
         public static JobData emptyJob() {
             return _emptyJob;
         }

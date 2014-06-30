@@ -32,8 +32,6 @@ public class Tracker {
     private TrackerData trackerData;
     private JobRequestServiceStub orchestrator;
 
-
-
     public Tracker(String hostname, InetAddress orchAddr, int orchPort) {
         this.orchAddr = orchAddr;
         this.orchPort = orchPort;
@@ -56,6 +54,7 @@ public class Tracker {
         logger.trace("");
         try {
             orchestrator.ping(this.trackerData);
+            logger.info("pinged.");
         } catch (RemoteException e) {
             logger.error(e);
         }

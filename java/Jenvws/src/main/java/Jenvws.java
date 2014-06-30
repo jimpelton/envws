@@ -1,15 +1,23 @@
+import Orchestrator.JobRequestService;
 import Orchestrator.JobsManager;
 import Orchestrator.OrchestratorService;
 import Orchestrator.TrackerManager;
+import ServiceStubs.JobRequestServiceStub;
+import ServiceStubs.OrchestratorServiceStub;
 import Tracker.Tracker;
+
 import org.apache.commons.cli.*;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 
 
 /**
@@ -20,15 +28,11 @@ import java.net.UnknownHostException;
 
 @SuppressWarnings("ALL")
 public class Jenvws {
+    private static final Logger logger = LogManager.getLogger(Jenvws.class.getName());
+
     private static final String EmptyString = "";
-    
-    private static final Logger logger
-            = LogManager.getLogger(Jenvws.class.getName());
 
     private String nodeType = EmptyString;
-//    private String rmiIp    = EmptyString;
-//    private String rmiPort  = EmptyString;
-
 
     private Options makeGeneralOptions() {
 
@@ -95,7 +99,7 @@ public class Jenvws {
         try {
 
             String rmiIp = EmptyString,
-                    rmiPort = EmptyString;
+                   rmiPort = EmptyString;
 
             if (line.hasOption("rmiIp")) {
                 rmiIp = line.getOptionValue("rmiIp");
@@ -117,18 +121,34 @@ public class Jenvws {
                 try{
                     portNumber = Integer.parseInt(rmiPort);
                 } catch (NumberFormatException e) {
-                    String msg = String.format("Invalid port given for rmiPort: %s. Using default: %d", rmiPort, portNumber);
+                    String msg = String.format(
+                            "Invalid port given for rmiPort: %s. Using default: %d",
+                            rmiPort, portNumber);
                     logger.error(msg);
                 }
             }
 
             logger.info(String.format("RMI IP: %s, RMI PORT: %d", ipAddr.toString(), portNumber));
-            JobsManager jom = new JobsManager();
-            TrackerManager trm = new TrackerManager(1000);
-            OrchestratorService service = new OrchestratorService(ipAddr, portNumber, jom, trm);
 
-            service.bind("OrchestratorService");
-            //logger.info("Bound to rmi registry");
+            JobsManager jom = new JobsManager();
+            TrackerManager trm = new TrackerManager(1000, 3000, 6000);
+            OrchestratorService orchService = new OrchestratorService(jom, trm);
+            JobRequestService jobService = new JobRequestService(jom, trm);
+
+//            RMIClientSocketFactory rmiClientSocketFactory = new RMIClientSocketFactory();
+//            RMIServerSocketFactory rmiServerSocketFactory = new RMIServerSocketFactory();
+
+            OrchestratorServiceStub orchStub = (OrchestratorServiceStub) UnicastRemoteObject
+                    .exportObject(orchService, 0 /*, rmiClientSocketFactory, rmiServerSocketFactory*/);
+
+            JobRequestServiceStub requestStub = (JobRequestServiceStub) UnicastRemoteObject
+                    .exportObject(jobService, 0 /*, rmiClientSocketFactory, rmiServerSocketFactory*/);
+
+            Registry registry = LocateRegistry.createRegistry(portNumber);
+            registry.rebind("OrchestratorService", orchStub);
+            registry.rebind("JobRequestService", requestStub);
+
+            logger.info("reached end of binding stuff");
 
         } catch (UnknownHostException e) {
             logger.fatal("Could not find host given for RMI IP.", e);
@@ -145,6 +165,7 @@ public class Jenvws {
         logger.info("Starting tracker.");
 
         try {
+
             String orchIp = EmptyString, orchPort = EmptyString;
             InetAddress ipAddr;
             int portNumber;
@@ -153,9 +174,9 @@ public class Jenvws {
                 orchIp = line.getOptionValue("orchIp");
             }
 
-//            if (line.hasOption("orchPort")) {
-//                orchPort = line.getOptionValue("orchPort");
-//            }
+            if (line.hasOption("orchPort")) {
+                orchPort = line.getOptionValue("orchPort");
+            }
 
             if (!orchIp.equals(EmptyString)) {
                 ipAddr = InetAddress.getByName(orchIp);
@@ -171,6 +192,9 @@ public class Jenvws {
 
             String hostname = InetAddress.getLocalHost().getHostName().toString();
             Tracker tr = new Tracker(hostname, ipAddr, portNumber);
+            tr.findRegistryAndCreateStub();
+            tr.startPingLoop();
+
 
         } catch (UnknownHostException e) {
             logger.fatal("Could not find host given for RMI IP.", e);
@@ -178,8 +202,14 @@ public class Jenvws {
         } catch (NumberFormatException e) {
             logger.fatal("That was such a bad port number!", e);
             System.exit(0);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (NotBoundException e) {
+            e.printStackTrace();
         }
     }
+
+
 
     public void doMain(String[] args) {
 
@@ -188,10 +218,10 @@ public class Jenvws {
         Options options = makeGeneralOptions();
 
         for (Object o : makeOrchestratorOptions().getOptions())
-            options.addOption((Option)o);
+            options.addOption((Option) o);
 
         for (Object o : makeTrackerOptions().getOptions())
-            options.addOption((Option)o);
+            options.addOption((Option) o);
 
 
         try {
@@ -210,7 +240,6 @@ public class Jenvws {
         } catch (ParseException e) {
             System.err.println(e.getMessage());
             new HelpFormatter().printHelp(80, "jenvws", ":D", options, ":D");
-
             System.exit(1);
         } catch (Exception e) {
             logger.fatal("peep!", e);

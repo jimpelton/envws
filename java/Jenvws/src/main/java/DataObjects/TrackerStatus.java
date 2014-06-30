@@ -6,5 +6,5 @@ package DataObjects;
  * @date 6/28/14
  */
 public enum TrackerStatus {
-    RUNNING, IDLE, NO_RESPONSE, UNKNOWN
+    RUNNING, IDLE, TRANSITION, PRERUN, POSTRUN, NO_RESPONSE, UNKNOWN
 }
