@@ -177,3 +177,10 @@ FakesAssemblies/
 NuGet.exe
 NuGet.config
 
+
+*.class
+.idea
+.directory
+*/target/
+
+
