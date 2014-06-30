@@ -195,7 +195,6 @@ public class Jenvws {
             tr.findRegistryAndCreateStub();
             tr.startPingLoop();
 
-
         } catch (UnknownHostException e) {
             logger.fatal("Could not find host given for RMI IP.", e);
             System.exit(0);
