@@ -18,32 +18,21 @@ public class JobScheduler {
 
     private static Logger logger = LogManager.getLogger(JobScheduler.class.getName());
 
-    private final int MAX_THREAD_POOL_SIZE = 10;
+    private static final int MAX_THREAD_POOL_SIZE = 10;
 
-    private ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(MAX_THREAD_POOL_SIZE);
+    private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(MAX_THREAD_POOL_SIZE);
+    static {
+        executor.schedule(JobScheduler::scheduledFuturesListScrubber, 5000, TimeUnit.MILLISECONDS);
+    }
 
-    private static JobScheduler myself = null;
+    private static ArrayList<ScheduledFuture<?>> scheduledFutures  = new ArrayList<>();
 
-    private ArrayList<ScheduledFuture<?>> scheduledFutures  = new ArrayList<>();
-
-    private void scheduledFuturesListScrubber() {
+    private static void scheduledFuturesListScrubber() {
         scheduledFutures.removeIf(v -> v.isDone());
     }
 
-    private JobScheduler() { }
-
-    public static JobScheduler Instance() {
-        if (myself == null) {
-            myself = new JobScheduler();
-            myself.submitRecurring(myself::scheduledFuturesListScrubber, 5000, 5000);
-        }
-
-        return myself;
-    }
-
-    public int submitRecurring(Runnable c, int initialDelayMillis, int repeatAfterMillis) {
-
-        ScheduledFuture fu = myself.executor.scheduleWithFixedDelay(() -> {
+    public static int submitRecurring(Runnable c, int initialDelayMillis, int repeatAfterMillis) {
+        ScheduledFuture fu = executor.scheduleWithFixedDelay(() -> {
 
             try {
                 c.run();
@@ -53,32 +42,26 @@ public class JobScheduler {
 
         }, initialDelayMillis, repeatAfterMillis, TimeUnit.MILLISECONDS);
 
-        myself.scheduledFutures.add(fu);
+        scheduledFutures.add(fu);
 
-        return myself.scheduledFutures.size()-1;
+        return scheduledFutures.size()-1;
     }
 
-    public int submitOneShot(Callable c, int delayMillis) {
-        if (myself == null) myself = new JobScheduler();
+    public static int submitOneShot(Callable c, int delayMillis) {
+        ScheduledFuture fu = executor.schedule(c, delayMillis, TimeUnit.MILLISECONDS);
+        scheduledFutures.add(fu);
 
-        ScheduledFuture fu = myself.executor.schedule(c, delayMillis, TimeUnit.MILLISECONDS);
-        myself.scheduledFutures.add(fu);
-
-        return myself.scheduledFutures.size()-1;
+        return scheduledFutures.size()-1;
     }
 
-    public int submitOneShot(Runnable c, int delayMillis) {
-        if (myself == null) myself = new JobScheduler();
+    public static int submitOneShot(Runnable c, int delayMillis) {
+        ScheduledFuture fu = executor.schedule(c, delayMillis, TimeUnit.MILLISECONDS);
+        scheduledFutures.add(fu);
 
-        ScheduledFuture fu = myself.executor.schedule(c, delayMillis, TimeUnit.MILLISECONDS);
-        myself.scheduledFutures.add(fu);
-
-        return myself.scheduledFutures.size()-1;
+        return scheduledFutures.size()-1;
     }
 
-    public void cancel(int index) {
-        if (myself==null) myself=new JobScheduler();
-
-        myself.scheduledFutures.get(index).cancel(false);
+    public static void cancel(int index) {
+        scheduledFutures.get(index).cancel(false);
     }
 }

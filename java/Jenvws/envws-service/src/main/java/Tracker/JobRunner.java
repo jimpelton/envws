@@ -1,10 +1,8 @@
 package Tracker;
 
 import DataObjects.JobData;
-import Tasks.EnvisionJobExecutor;
 import Tasks.JobCompletedEventArgs;
 import Tasks.JobScheduler;
-import Tasks.ProcessExecutor;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -16,7 +14,7 @@ import java.util.concurrent.Callable;
  * @class
  * @date 7/5/14
  */
-public class JobRunner<T extends ProcessExecutor> {
+public class JobRunner {
     private static Logger logger = LogManager.getLogger(JobRunner.class.getName());
     private static int MAX_WAITING = 1;
     private static int MAX_RUNNING = 1;
@@ -44,7 +42,7 @@ public class JobRunner<T extends ProcessExecutor> {
 
         if (!kw) {
             setKeepWorking(true);
-            watchLoopJobIndex = JobScheduler.Instance().submitOneShot(this::watchLoop, 0);
+            watchLoopJobIndex = JobScheduler.submitOneShot(this::watchLoop, 0);
         }
     }
 
@@ -63,9 +61,8 @@ public class JobRunner<T extends ProcessExecutor> {
         while(getKeepWorking()) {
             logger.info("Tracker waiting for new Job");
             JobData job = jobRunnerQueue.take();
-            ProcessExecutor executor = new EnvisionJobExecutor(job, this::onJobCompleted);
-            JobScheduler.Instance().submitOneShot(executor::executeJob, 0);
         }
+        return 0;
     }
 
     public boolean addNewJob(JobData job) {
