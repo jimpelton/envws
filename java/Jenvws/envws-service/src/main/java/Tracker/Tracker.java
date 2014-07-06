@@ -5,6 +5,7 @@ import DataObjects.JobData;
 import DataObjects.TrackerData;
 import DataObjects.TrackerStatus;
 import ServiceStubs.JobRequestServiceStub;
+import Tasks.EnvisionJobExecutor;
 import Tasks.JobScheduler;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -14,9 +15,6 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
 import java.util.UUID;
 
 /**
@@ -27,11 +25,10 @@ import java.util.UUID;
 public class Tracker {
     private static Logger logger = LogManager.getLogger(Tracker.class.getName());
 
-    /* Queue of Jobs to run */
-    private List<JobRunner> jobRunnerQueue = new ArrayList<>();
-
     /* Max jobs in queue at a time. */
     private static int MAX_JOB_QUEUE_LENGTH = 1;
+
+
 
     private InetAddress orchAddr;
     private int orchPort;
@@ -41,6 +38,8 @@ public class Tracker {
 
     /* the orchestrator for this cluster */
     private JobRequestServiceStub orchestrator;
+
+    private JobRunner<EnvisionJobExecutor> jobRunner = new JobRunner<EnvisionJobExecutor>();
 
     /* the JobScheduler's index of the job running the ping loop */
     private int pingLoopJobIndex;
@@ -71,7 +70,8 @@ public class Tracker {
             if (hasJobs) {
                 JobData jd = orchestrator.requestJob();
                 if (!jd.equals(JobData.emptyJob())) {
-
+                    jobRunner.addNewJob(jd);
+                    logger.info(String.format("Added new job: %s (%s).", jd.getFriendlyName(), jd.getUuid()));
                 }
             }
             logger.trace("Pinged orchcestrator");

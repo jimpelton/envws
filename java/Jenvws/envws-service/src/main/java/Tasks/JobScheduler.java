@@ -19,7 +19,9 @@ public class JobScheduler {
     private static Logger logger = LogManager.getLogger(JobScheduler.class.getName());
 
     private final int MAX_THREAD_POOL_SIZE = 10;
+
     private ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(MAX_THREAD_POOL_SIZE);
+
     private static JobScheduler myself = null;
 
     private ArrayList<ScheduledFuture<?>> scheduledFutures  = new ArrayList<>();
@@ -57,6 +59,15 @@ public class JobScheduler {
     }
 
     public int submitOneShot(Callable c, int delayMillis) {
+        if (myself == null) myself = new JobScheduler();
+
+        ScheduledFuture fu = myself.executor.schedule(c, delayMillis, TimeUnit.MILLISECONDS);
+        myself.scheduledFutures.add(fu);
+
+        return myself.scheduledFutures.size()-1;
+    }
+
+    public int submitOneShot(Runnable c, int delayMillis) {
         if (myself == null) myself = new JobScheduler();
 
         ScheduledFuture fu = myself.executor.schedule(c, delayMillis, TimeUnit.MILLISECONDS);
