@@ -33,7 +33,7 @@ public class JobRequestService implements JobRequestServiceStub {
         trackerManager.updateTracker(td);
         logger.trace("Got pinged: " + td.getHostName() + " (" + td.getUuid().toString()+")");
 
-        return true;
+        return (jobsManager.getNumberOfWaitingJobs() > 0);
     }
 
     /**

@@ -74,4 +74,8 @@ public class JobsManager {
         return rval;
     }
 
+    public int getNumberOfWaitingJobs() {
+        return waitingJobs.size();
+    }
+
 }

@@ -177,10 +177,17 @@ FakesAssemblies/
 NuGet.exe
 NuGet.config
 
-
+# Java stuff
 *.class
+
+#Intellij project directories.
 .idea
+
+# Maven directories
+*target
+
+# Silly KDE dolphin hidden files
 .directory
-*/target/
 
-
+# VIM swap files
+*.swp

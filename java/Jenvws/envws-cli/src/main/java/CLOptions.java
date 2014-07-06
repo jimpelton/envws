@@ -8,6 +8,7 @@ import org.apache.commons.cli.Options;
  * @class
  * @date 7/5/14
  */
+@SuppressWarnings("AccessStaticViaInstance")
 public class CLOptions {
 
     protected static Options makeOptions() {
@@ -15,20 +16,35 @@ public class CLOptions {
                 .hasArg(false)
                 .withDescription("Submit a job to the cluster.")
                 .withLongOpt("submit")
-                .create("submit");
+                .create();
 
         Option listTrackers = OptionBuilder
                 .hasArg(false)
                 .withDescription("List the trackers and corresponding status")
                 .withLongOpt("list")
-                .create("list");
+                .create();
+
+        Option removeJob = OptionBuilder
+                .hasArg(false)
+                .withDescription("Remove a job from the queue")
+                .withLongOpt("remove")
+                .create();
+
+        Option viewQueue = OptionBuilder
+                .hasArg(false)
+                .withDescription("View the Job Queue")
+                .withLongOpt("queue")
+                .create();
 
         Options opts =
             new Options()
                 .addOptionGroup(
                     new OptionGroup()
-                        .addOption(submitJob)
-                        .addOption(listTrackers));
+                    .addOption(submitJob)
+                    .addOption(listTrackers)
+                    .addOption(removeJob)
+                    .addOption(viewQueue)
+                );
 
         return opts;
     }
@@ -55,7 +71,14 @@ public class CLOptions {
                 .addOption(port);
 
         return opts;
+    }
 
+    protected static Options makeRemoveOptions() {
+        throw new UnsupportedOperationException();
+    }
+
+    protected static Options makeViewQueueOptions() {
+        throw new UnsupportedOperationException();
     }
 
 

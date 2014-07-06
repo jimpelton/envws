@@ -23,6 +23,7 @@ public class EnvwsCli {
             line = parser.parse(listOpts, args);
             String host = EmptyString;
             int port = 12345;
+
             if (line.hasOption("orch")) {
                 host = line.getOptionValue("orch");
             }
@@ -37,13 +38,13 @@ public class EnvwsCli {
             }
 
             InetAddress endpoint = InetAddress.getByName(host);
-            TrackerData[] trackerDatas = lookupRegistry(endpoint, port).getAllTrackers();
+            TrackerData[] trackerDatas =
+                    lookupRegistry(endpoint, port).getAllTrackers();
 
 
         } catch (ParseException e) {
             System.err.println(e.getMessage());
-            new HelpFormatter().printHelp(80, "envws-cli", ":D", listOpts, ":D");
-            System.exit(1);
+            printHelp(listOpts);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (RemoteException e) {
@@ -59,6 +60,11 @@ public class EnvwsCli {
         return (OrchestratorServiceStub) registry.lookup("OrchestratorService");
     }
 
+    private void printHelp(Options opts) {
+        new HelpFormatter().printHelp(80, "envws-cli", "", opts, "");
+        System.exit(1);
+    }
+
     public void doMain(String[] args) {
         Options generalOpts = CLOptions.makeOptions();
         CommandLineParser parser = new BasicParser();
@@ -66,17 +72,25 @@ public class EnvwsCli {
 
         try{
             line = parser.parse(generalOpts, args);
+
             if (line.hasOption("list")) {
-                doList(Arrays.copyOfRange(args, 1, args.length-1));
+
+                if (args.length > 1) {
+                    doList(Arrays.copyOfRange(args, 1, args.length - 1));
+                } else {
+                    throw new ParseException("Provide extra argument for list option.");
+                }
+
             } else if (line.hasOption("submit")) {
+
 //                doSubmit();
+
             } else {
                 throw new ParseException("Not the args I am looking for.");
             }
         }catch (ParseException e) {
             System.err.println(e.getMessage());
-            new HelpFormatter().printHelp(80, "envws-cli", ":D", generalOpts, ":D");
-            System.exit(1);
+            printHelp(generalOpts);
         }
     }
 
