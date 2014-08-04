@@ -78,7 +78,6 @@ namespace ClientLib.Client
             JobData job = new JobData
             {
                 EnvxName = envxFileName,
-                ProjectResultsUri = resultsUri,
                 ProjectSourceUri = sourceUri,
                 FriendlyName = friendlyName,
                 ProjectScenarios = scenarios,

@@ -28,8 +28,8 @@ namespace EnvwsLib.DataContracts
         /// <summary>
         /// Uri where project results should be uploaded.
         /// </summary>
-        [DataMember]
-        public string ProjectResultsUri { get; set; }
+//        [DataMember]
+//        public string ProjectResultsUri { get; set; }
 
         /// <summary>
         /// Gets or sets an int array of scenarios that will be run.
@@ -89,7 +89,6 @@ namespace EnvwsLib.DataContracts
             Guid = "";
             EnvxName = "";
             ProjectSourceUri = "";
-            ProjectResultsUri = "";
             ProjectScenarios = new int[0];
             SubmitTime = 0L;
             FinishTime = 0L;
@@ -110,8 +109,6 @@ namespace EnvwsLib.DataContracts
                 Guid = string.Copy(rhs.Guid),
                 EnvxName = string.Copy(rhs.EnvxName),
                 ProjectSourceUri = string.Copy(rhs.ProjectSourceUri),
-                ProjectResultsUri = string.Copy(rhs.ProjectResultsUri),
-//                ProjectScenarios = rhs.ProjectScenarios.Select(p => p).ToArray(),
                 SubmitTime = rhs.SubmitTime,
                 FinishTime = rhs.FinishTime,
                 StartTime = rhs.StartTime,

@@ -66,7 +66,7 @@ namespace ConsoleClient
 			{
                 oc.SubmitJob(envxFileName, sourceUri, resultsUri, friendlyName, scenarios);
 			}
-			catch (System.Exception ex)
+			catch (Exception ex)
 			{
                 Console.WriteLine("Failed to submit job: " + ex.Message);					
 			}

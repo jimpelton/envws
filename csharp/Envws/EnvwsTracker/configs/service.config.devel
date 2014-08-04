@@ -3,18 +3,20 @@
 ;
 
 ; Working directory where files are downloaded to.
-workingDir = C:\ews_working
+BaseDirectory = D:\envision\ews_working
 
 ; Appended to the zip filename (before extension)
-resultsAppendStr = _results
+ResultsAppendStr = _results
 
 ; Path to the envision executable.
-envExePath = \\documents-and-settings\envws\deploy\envision\envision.exe
+EnvExePath = C:\envision\envision.exe
 
-; directory to create and copy job logs into
-resultsLogDir = job_logs
+EnvisionOutputDirectoryName = Output
 
-; Envision log files: "Envision_<logtype>.<hostname>.datetime.log"
-envReportLog = Envision_reportlog
-envLogbookLog = Envision_logbook
-envLog = Envision
+EnvLog = Envision.log
+
+RemoteBaseDirectory = D:\envision\envws
+
+ResultsLogDirectory = logs
+
+ResultsDirectory = output

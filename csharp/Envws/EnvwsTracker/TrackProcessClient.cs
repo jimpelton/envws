@@ -9,11 +9,10 @@ using System.Linq.Expressions;
 
 using log4net;
 using log4net.Config;
+using TrackProcess;
 
 namespace EnvwsTracker
 {
-    using EnvwsLib;
-    using EnvwsLib.Tracker;
     using EnvwsLib.Util;
     using EnvwsLib.DataContracts;
     using EnvwsLib.ServiceProxies;
@@ -28,25 +27,57 @@ namespace EnvwsTracker
         
         private static ILog logger;
 
+        /// <summary>
+        /// The current state of this tracker is kept in the TrackerData. By sending
+        /// this TrackerData to the orchestrator, the orchestrator is kept up to date
+        /// on what this tracker is currently up to.
+        /// </summary>
         private TrackerData Data;
 
+        /// <summary>
+        /// This clients manager of job executions and status changes.
+        /// </summary>
         private ProcessTrackerManager Manager { get; set; }
 
+        /// <summary>
+        /// Fires when the Orchestrator service should be pinged with update on 
+        /// status, etc.
+        /// </summary>
         private Timer PingTimer;
 
+        /// <summary>
+        /// Fires when the Orchestrator service should be queried for available job.
+        /// </summary>
         private Timer CheckJobTimer;
 
-        private string MachineName = string.Empty;
+        /// <summary>
+        /// The host name of this tracker.
+        /// </summary>
+//        private string MachineName = string.Empty;
 
+        /// <summary>
+        /// Interval for CheckJobTimer.
+        /// </summary>
         private int RequestJobFreqMillis { get; set; }
 
+        /// <summary>
+        /// Interval for PingTimer.
+        /// </summary>
         private int CheckInFreqMillis { get; set; }
+
 
         private const int CHECKIN_ONE_SECOND = 1000;
         private const int CHECKIN_FIVE_SECOND = 5000;
 
+        /// <summary>
+        /// A list of completed Jobs that this tracker has completed.
+        /// </summary>
         private IList<TrackerJobData> CompletedJobs = new List<TrackerJobData>();
 
+        /// <summary>
+        /// Create a client with the given TrackerData.
+        /// </summary>
+        /// <param name="td">A tracker data already filled out with the information of this tracker.</param>
         public TrackProcessClient(TrackerData td /*, CheckInServiceClient client*/ )
         {
             Data = td;
@@ -54,8 +85,18 @@ namespace EnvwsTracker
             CheckInFreqMillis = CHECKIN_ONE_SECOND;
         }
 
+        /// <summary>
+        /// Configuration details for this Tracker client.
+        /// </summary>
         public static ConfigParser Config { get; private set; }
 
+        /// <summary>
+        /// The client proxy for the Orchestrator check-in service. 
+        /// 
+        /// The name client is probably a poor choice, since this 
+        /// TrackProcessClient object is the true client, and the 
+        /// Orchestrator provides the service end-point.
+        /// </summary>
         private CheckInServiceClientProxy Client { get; set; }
         
         /// <summary>
@@ -82,19 +123,17 @@ namespace EnvwsTracker
                 return false;
             }
 
-            Manager = new ProcessTrackerManager()
-            {
-                WorkingDir = Config["workingDir"],
-                ResultsAppendStr = Config["resultsAppendStr"],
-                EnvExePath = Config["envExePath"]
-            };
+            Manager = new ProcessTrackerManager();
 
             Manager.JobCompleted += this.OnJobComplete;
+            Manager.StatusChanged += this.OnStatusChanged;
             Manager.Start();
 
             RequestNewJob(this);
             return true;
         }
+
+
 
 		/// <summary>
 		/// Sends the CheckIn message and submits the current tracker data.
@@ -140,9 +179,23 @@ namespace EnvwsTracker
         }
 
         /// <summary>
-        /// Returns the given job.
+        /// Handle an OnStatusChangedEvent, sent by the ProcessTrackerManager.
         /// </summary>
-        /// <returns>False if the Orchestrator's endpoint was not found, true otherwise.</returns>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnStatusChanged(object sender, TrackProcess.StatusChangedEventArgs e)
+        {
+            Data.Status = e.Status;
+        }
+
+        /// <summary>
+        /// Returns the given job. If any jobs are still waiting to be returned, then 
+        /// those jobs are returned as well.
+        /// </summary>
+        /// 
+        /// <returns>
+        /// False if the Orchestrator's endpoint was not found, true otherwise.
+        /// </returns>
         private bool ReturnFinishedJobs(JobData job)
         {
             bool rval = false;
@@ -178,18 +231,25 @@ namespace EnvwsTracker
                 jd = Client.RequestJob();
                 if (jd != null)
                 {
-                    logger.Info("Got new job.");
+                    logger.Info(
+                        string.Format("Received new job from orchestrator: {0} ({1})", 
+                        jd.FriendlyName, jd.Guid));
+
                     jd.TrackerGuid = Data.Guid;
 
 					//TODO: check thread safety.
                     Manager.AddNewJob(jd);
-                    logger.Info("Added new job to manager.");
+                    
+                    logger.Info(
+                        string.Format("Added new job to manager: {0} ({1})", 
+                        jd.FriendlyName, jd.Guid));
 
-                    // stop job checkouts until we request another job.
+                    // Stop job requests while working on current job.
                     RequestJobFreqMillis = Timeout.Infinite;
                 }
                 else
                 {
+                    // Orchestrator replied no jobs, set recheck time to one second.
                     RequestJobFreqMillis = CHECKIN_ONE_SECOND;
                     logger.Debug("No new jobs on orchestrator, checking back in one second.");
                 }
@@ -197,10 +257,13 @@ namespace EnvwsTracker
             catch (EndpointNotFoundException e)
             {
                 logger.Error("Orchestrator not found when requesting new job.", e);
+
+                // If orchestrator is not found, back off the job request times.
                 RequestJobFreqMillis = CHECKIN_FIVE_SECOND;
             }
             finally
             {
+                // Restart the timer.
                 CheckJobTimer.Change(RequestJobFreqMillis, Timeout.Infinite);
             }
         }
@@ -261,53 +324,93 @@ namespace EnvwsTracker
             logger = LogManager.GetLogger(typeof(TrackProcessClient));
 
             Config = ConfigParser.Instance();
-            Config.AddOpt("workingDir")
-                  .AddOpt("resultsAppendStr")
-                  .AddOpt("envExePath")
-                  .AddOpt("envReportLog")
-                  .AddOpt("envLogbookLog")
-                  .AddOpt("envLog")
-                  .AddOpt("resultsLogDir")
-                  .AddOpt("log4NetConfigFile")
-                  .SetDefaultOptValue("log4NetConfigFile", "log4.config");
+            Config.AddOpt("BaseDirectory")
+                  .AddOpt("EnvExePath")
+                  .AddOpt("EnvisionOutputDirectoryName")
+                  .AddOpt("EnvLog")
+                  .AddOpt("RemoteBaseDirectory")
+                  .AddOpt("ResultsLogDirectory")
+                  .AddOpt("ResultsDirectory")
+                  .AddOpt("Log4NetConfigFile")
+                  .SetDefaultOptValue("Log4NetConfigFile", "log4.config")
+                  .SetDefaultOptValue("EnvisionOutputDirectoryName", "Output");
 
-            ParseArgs(args);
+            ParseArgsAndOpenConfigFile(args);
 
-            TrackerData td = new TrackerData()
+            if (!CheckRequiredConfigOptions())
             {
-                Guid = Guid.NewGuid().ToString(),
-                Status = TrackerStatus.IDLE,
-                HostName = Environment.MachineName
-            };
+                logger.Fatal("Some configuration options did not pass checks."
+                    + "Check config file for any incorrect values.");
+                Environment.Exit(0);
+            }
 
-            string configFile = Config["log4NetConfigFile"];
+            string configFile = Config["Log4NetConfigFile"];
 			if (!File.Exists(configFile))
             {
                 BasicConfigurator.Configure();
             }
+			else
+            {
+				XmlConfigurator.Configure(new FileInfo(configFile));
+            }
 			
-            XmlConfigurator.Configure(new System.IO.FileInfo(configFile));
+            TrackProcessClient client = new TrackProcessClient(
+                new TrackerData()
+				{
+					Guid = Guid.NewGuid().ToString(),
+					Status = TrackerStatus.IDLE,
+					HostName = Environment.MachineName
+				});
 
-            TrackProcessClient client = new TrackProcessClient(td);
             if (client.StartManager())
             {
+                logger.Info("Found Orchestrator.");
                 client.StartPingLoop();
-                logger.Info("Found Orchestrator at: ");
                 logger.Info("Tracker is ready.");
                 Console.WriteLine("Press <return> to exit...");
                 Console.ReadLine();
             }
+            else
+            {
+                logger.Fatal("An orchestrator was not found. Exiting.");
+                Environment.Exit(0);
+            }
         }
 
-        private static void ParseArgs(string[] args)
+		// check for config options that must exist for sure, return
+		// false if one check does not pass, but still checks everything.
+        private static bool CheckRequiredConfigOptions()
+        {
+            bool fatalErrorFound = false;
+
+			string envexe = Config["EnvExePath"];
+            if (!File.Exists(envexe))
+            {
+                logger.Fatal(String.Format("Envision executable not found: {0}", envexe));
+                fatalErrorFound = true;
+            }
+
+			string workingDir = Config["BaseDirectory"];
+			if (!Directory.Exists(workingDir))
+            {
+                logger.Fatal(String.Format("Working dir not found: {0}", workingDir));
+                fatalErrorFound = true;
+            }
+
+            return fatalErrorFound;
+        }
+
+		// check command line args, and for config file.
+        private static void ParseArgsAndOpenConfigFile(string[] args)
         {
             if (args.Length >= 1)
             {
 				if (args[0].ToLower() == "-v")
                 {
-                    Console.WriteLine("Version: " + EnvwsTracker.RepoVer.VER);
+                    Console.WriteLine("Version: {0}", EnvwsTracker.RepoVer.VER);
                     Environment.Exit(0);
                 }
+
                 string configFile = args[0];
                 if (File.Exists(configFile))
                 {
@@ -315,8 +418,8 @@ namespace EnvwsTracker
                 }
                 else
                 {
-                    logger.Error("Config file " + configFile + " doesn't exist. Exiting...");
-                    Console.WriteLine("Config file " + configFile + " doesn't exist. Exiting...");
+                    logger.Fatal(string.Format("Config file {0} doesn't exist. Exiting...", configFile));
+                    Console.WriteLine("Config file {0} doesn't exist. Exiting...", configFile);
                     Usage();
                     Environment.Exit(0);
                 }

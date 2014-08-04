@@ -48,17 +48,26 @@ namespace EnvwsLib.Tracker
         /// <exception cref="System.IO.FileNotFoundDescription">If the executable isn't found.</exception>
         public void Start() 
         {
-            Process proc = null;
-            m_logger.Info("Starting process: " + ProcessPath);
-            proc = Process.Start(ProcessPath, ProcessArgs);
-            proc.EnableRaisingEvents = true;
-            proc.Exited += (sender, e) =>
+            try
             {
-                ExitCode = proc.ExitCode;
-                m_logger.Info("process ended with exit code: " + ExitCode);
-                if (proc != null) proc.Close();
+				Process proc = null;
+				m_logger.Debug(string.Format("Starting process: {0}", ProcessPath));
+				proc = Process.Start(ProcessPath, ProcessArgs);
+				proc.EnableRaisingEvents = true;
+
+				proc.Exited += (sender, e) =>
+				{
+					ExitCode = proc.ExitCode;
+					m_logger.Debug(string.Format("Process ended with exit code: {0}", ExitCode));
+					if (proc != null) proc.Close();
+					m_resetEvent.Set();
+				};
+
+            }
+            finally
+            {
                 m_resetEvent.Set();
-            };
+            }
         }
 
         /// <summary>

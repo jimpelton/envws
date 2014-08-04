@@ -1,6 +1,6 @@
 
 
-workingDir = E:\ews_working
-resultsAppendStr = _results
-envExePath = C:\Envision\envision.exe
+WorkingDir = E:\ews_working
+ResultsAppendStr = _results
+EnvExePath = C:\Envision\envision.exe
 
