@@ -82,14 +82,16 @@ namespace TrackProcess
         /// True if the job was setup correcly and results where uploaded, false otherwise.
         /// </returns>
         //TODO: ExecuteJob return error code.
-        public override int ExecuteJob()
+        public override bool ExecuteJob(ref int exitCode)
         {
-            logger.Info(string.Format("Job started: {0} ({1}) ", CurrentJob.FriendlyName, CurrentJob.Guid));
+            logger.Debug(string.Format("Job started: {0} ({1}) ", CurrentJob.FriendlyName, CurrentJob.Guid));
 
             // Copy the project folder onto the working filesystem.
             CheckForAndCreateDirectory(ProjectWorkingDir);
             RecursivelyCopyEntireDirectory(SourceDirectory, ProjectWorkingDir);
-            int exitCode = -1;
+            
+            int ec = -1;
+            bool rval = false;
 
             // If the job specifies that certain scenarios should be run, then loop through
             // them, executing each scenario in succession. Otherwise, run the job on
@@ -98,42 +100,55 @@ namespace TrackProcess
             {
                 foreach (int scenarioIndex in CurrentJob.ProjectScenarios)
                 {
-                    exitCode = RunJob(scenarioIndex);
+                    logger.Debug(string.Format("Running scenario: {0}, {1} ({2})", scenarioIndex, CurrentJob.FriendlyName, CurrentJob.Guid)
+                    
+                    rval = RunJob(scenarioIndex, ref ec);
+                    
+                    //TODO: ResultsDirectory might get overwritten.
+                    CheckForAndCreateDirectory(ResultsDirectory);
+                    RecursivelyCopyEntireDirectory(Path.Combine(ProjectWorkingDir, EnvisionOutputDir),
+                        ResultsDirectory);
                 }
             }
             else
             {
-                exitCode = RunJob(0);
+                rval = RunJob(0, ref ec);
+
+                CheckForAndCreateDirectory(ResultsDirectory);
+                RecursivelyCopyEntireDirectory(Path.Combine(ProjectWorkingDir, EnvisionOutputDir),
+                    ResultsDirectory);
             }
 
-            logger.Info(string.Format("Job completed: {0} ({1})", CurrentJob.FriendlyName, CurrentJob.Guid));
-
-            return exitCode;
+            logger.Debug(string.Format("Job completed: {0} ({1})", CurrentJob.FriendlyName, CurrentJob.Guid));
+            
+            exitCode = ec;
+            
+            return rval;
         }
 
         /// <summary>
         /// Run a single scenario. Passing 0 for scenarioIndex runs all scenarios.
         /// Once the scenario is done executing, the results are copied into the
         /// results directory.
+        /// 
+        /// If true is returned, then exitCode was assigned and can be checked. 
+        /// If false is returned the value of exitCode is considered undefined.
         /// </summary>
         /// <param name="scenarioIndex">The scenario to run.</param>
-        /// <returns>The exit code returned by Envision. -1 is returned if the process failed to start.</returns>
-        private int RunJob(int scenarioIndex)
+        /// <returns>false if the job was not started, true if the job started and exitcode was assigned a value.</returns>
+        private bool RunJob(int scenarioIndex, ref int exitCode)
         {
+            bool rval = false;
             string envOpts = string.Format("/r:{0}", scenarioIndex);
             ProcessTracker tracker = new ProcessTracker(EnvExePath, envOpts);
-            if (!tracker.Start())
+            if (tracker.Start())
             {
-                return -1;
+                exitCode = tracker.WaitForCompletion();
+                logger.Debug(string.Format("Envision exited. Exit code: {0}", exitCode));
+                rval = true;
             }
-            int exitCode = tracker.WaitForCompletion();
 
-            CheckForAndCreateDirectory(ResultsDirectory);
-            RecursivelyCopyEntireDirectory(Path.Combine(ProjectWorkingDir, EnvisionOutputDir), 
-                ResultsDirectory);
-            logger.Info(string.Format("Envision exited. Exit code: {0}", exitCode));
-
-            return exitCode;
+            return rval;
         }
 
         /// <summary>
@@ -203,7 +218,7 @@ namespace TrackProcess
         }
 
         /// <summary>
-        /// 
+        /// Recusively copy sourcedirectory to destination path.
         /// </summary>
         /// <param name="sourceDir"></param>
         /// <param name="destPath"></param>
@@ -236,7 +251,7 @@ namespace TrackProcess
                 string path = Path.Combine(destDir, Path.GetFileName(destFile));
 
                 File.Copy(sourceFile, destFile);
-                 logger.Info(string.Format("Successfuly copied: {0} to {1}", sourceFile, destFile));
+                logger.Debug(string.Format("Successfuly copied: {0} to {1}", sourceFile, destFile));
             } 
             catch (Exception e)
             {

@@ -125,7 +125,8 @@ namespace EnvwsTracker
                 job.StartTime = Utils.CurrentUTCMillies();
                 
                 //TODO: use a factory to create JobRunners.
-                int exitCode = new EnvisionJobRunner(job).ExecuteJob();
+                int exitCode = -1;
+                bool ok = new EnvisionJobRunner(job).ExecuteJob(ref exitCode);
                 job.EnvisionExitCode = exitCode;
                 
                 logger.Info("Envision exit code: " + exitCode);

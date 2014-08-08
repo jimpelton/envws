@@ -341,13 +341,13 @@ namespace EnvwsTracker
             if (!File.Exists(configFile))
             {
                 BasicConfigurator.Configure();
-                Console.WriteLine(string.Format("Logger configured with BasicConfigurator because " +
-                                                "config file {0} was not found.", configFile));
+                Console.WriteLine("Logger configured with BasicConfigurator because " +
+                                  "config file {0} was not found.", configFile);
             }
             else
             {
                 XmlConfigurator.Configure(new FileInfo(configFile));
-                Console.WriteLine(string.Format("Logger configured with config file: {0}", configFile));
+                Console.WriteLine("Logger configured with config file: {0}", configFile);
             }
 
             if (!CheckRequiredConfigOptions())
@@ -391,7 +391,7 @@ namespace EnvwsTracker
             if (!File.Exists(envexe))
             {
                 // This is not a fatal error, so ok still = true.
-                logger.Error(String.Format("Envision executable not found: {0}", envexe));
+                logger.Warn(String.Format("Envision executable not found: {0}", envexe));
             }
 
 			string workingDir = Config["BaseDirectory"];

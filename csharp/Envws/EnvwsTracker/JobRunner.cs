@@ -20,7 +20,7 @@ namespace TrackProcess
             CurrentJob = job;
         }
 
-        public abstract int ExecuteJob();
+        public abstract bool ExecuteJob(ref int exitCode);
 
         protected virtual void OnStatusChanged(StatusChangedEventArgs e)
         {
