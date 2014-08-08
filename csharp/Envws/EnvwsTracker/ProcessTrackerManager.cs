@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace EnvwsTracker
@@ -102,8 +103,16 @@ namespace EnvwsTracker
             if (! KeepWorking)
             {
                  KeepWorking = true;
-                 watchTask = new Task( Watch);
-                 watchTask.Start();
+                try
+                {
+                    watchTask = new Task(Watch);
+                    watchTask.Start();
+                }
+                catch (Exception e)
+                {
+                    logger.Error(e.Message);
+                    Console.Error.WriteLine(e.StackTrace);
+                }
             }
         }
 
@@ -113,24 +122,23 @@ namespace EnvwsTracker
         private void Watch()
         {
             Status = TrackerStatus.IDLE;
-            while ( KeepWorking)
+            while (KeepWorking)
             {
                 logger.Info("Waiting for new job.");
+                
                 JobData job =  jobqueue.DequeueWaiting();
                 Status = TrackerStatus.RUNNING;
 
-                logger.Info("New job dequeued: " + job.Guid);
-                logger.Info("Starting job." + job.Guid);
+                logger.Info(string.Format("Starting new job {0} ({1}).", job.FriendlyName, job.Guid));
 
                 job.StartTime = Utils.CurrentUTCMillies();
                 
-                //TODO: use a factory to create JobRunners.
-                int exitCode = -1;
-                bool ok = new EnvisionJobRunner(job).ExecuteJob(ref exitCode);
+                int exitCode = RunInSynchronousTask(job);
+
+                job.FinishTime = Utils.CurrentUTCMillies();
                 job.EnvisionExitCode = exitCode;
                 
                 logger.Info("Envision exit code: " + exitCode);
-                job.FinishTime = Utils.CurrentUTCMillies();
 
                 jobqueue.EnqueueDone(job);
                 Status = TrackerStatus.IDLE;
@@ -140,7 +148,45 @@ namespace EnvwsTracker
                 JobCompletedEventArgs args = new JobCompletedEventArgs { Job = job };
                 OnJobCompleted(args);
             }
-             logger.Info("Watch loop exiting.");
+            
+            logger.Info("Watch loop exiting.");
+        }
+
+        /// <summary>
+        /// Create a JobRunner and execute it in a separate task. This method blocks
+        /// until the task is finished.
+        /// 
+        /// Catches exceptions swallowed by the task, unrolls and logs 'em.
+        /// When the JobRunner is done, this method returns the exit code returned
+        /// by the JobRunner.
+        /// </summary>
+        /// <param name="job">The job to hand off to a job runner.</param>
+        /// <returns>Exit code from the runner, -1 if the jobrunner failed.</returns>
+        private int RunInSynchronousTask(JobData job)
+        {
+            int exitCode = -1;
+            try
+            {
+                //TODO: use a factory to create JobRunners.
+                Task<bool> exeTask = new Task<bool>(
+                    () => new EnvisionJobRunner(job).ExecuteJob(ref exitCode));
+                
+                exeTask.Start();
+                exeTask.Wait();   // <-- the synchronous part.
+            }
+            catch (AggregateException ae)
+            {
+                foreach (var exception in ae.Flatten().InnerExceptions)
+                {
+                    logger.Error(exception);
+                }
+            }
+            catch (Exception e)
+            {
+                logger.Error(e.Message);
+            }
+
+            return exitCode;
         }
 
         protected virtual void OnJobCompleted(JobCompletedEventArgs e)

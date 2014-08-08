@@ -79,9 +79,8 @@ namespace EnvwsLib.Tracker
                 }
                 else
                 {
-                    m_logger.Error("Process successfully started.");
+                    m_logger.Debug("Process successfully started.");
                 }
-                
             }
             catch (Exception e)
             {
