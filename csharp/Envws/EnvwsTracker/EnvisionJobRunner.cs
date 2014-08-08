@@ -140,7 +140,7 @@ namespace TrackProcess
         private bool RunJob(int scenarioIndex, ref int exitCode)
         {
             bool rval = false;
-            string envOpts = string.Format("/r:{0}", scenarioIndex);
+            string envOpts = string.Format("/s /r:{0} {1}", scenarioIndex, EnvxFilePath);
             ProcessTracker tracker = new ProcessTracker(EnvExePath, envOpts);
             if (tracker.Start())
             {
