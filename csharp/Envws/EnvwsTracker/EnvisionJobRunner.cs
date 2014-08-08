@@ -100,7 +100,8 @@ namespace TrackProcess
             {
                 foreach (int scenarioIndex in CurrentJob.ProjectScenarios)
                 {
-                    logger.Debug(string.Format("Running scenario: {0}, {1} ({2})", scenarioIndex, CurrentJob.FriendlyName, CurrentJob.Guid)
+                    logger.Debug(string.Format("Running scenario: {0}, {1} ({2})", scenarioIndex,
+                        CurrentJob.FriendlyName, CurrentJob.Guid));
                     
                     rval = RunJob(scenarioIndex, ref ec);
                     
