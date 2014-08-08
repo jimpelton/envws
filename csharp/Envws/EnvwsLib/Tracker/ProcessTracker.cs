@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Threading;
 
 namespace EnvwsLib.Tracker
@@ -46,28 +47,52 @@ namespace EnvwsLib.Tracker
         /// <exception cref="System.ComponentModel.Win32Exception"></exception>
         /// <exception cref="System.ObjectDisposedException"></exception>
         /// <exception cref="System.IO.FileNotFoundDescription">If the executable isn't found.</exception>
-        public void Start() 
+        public bool Start() 
         {
+			Process proc = null;
+			m_logger.Debug(string.Format("Starting process: {0}", ProcessPath));
+            proc = new Process
+            {
+                EnableRaisingEvents = true,
+                StartInfo = new ProcessStartInfo(ProcessPath, ProcessArgs)
+            };
+                
+            proc.Exited += (sender, e) =>
+			{
+				ExitCode = proc.ExitCode;
+				m_logger.Debug(string.Format("Process ended with exit code: {0}", ExitCode));
+				if (proc != null) proc.Close();
+				m_resetEvent.Set();
+			};
+            
+            bool ok = false;
+
             try
             {
-				Process proc = null;
-				m_logger.Debug(string.Format("Starting process: {0}", ProcessPath));
-				proc = Process.Start(ProcessPath, ProcessArgs);
-				proc.EnableRaisingEvents = true;
 
-				proc.Exited += (sender, e) =>
-				{
-					ExitCode = proc.ExitCode;
-					m_logger.Debug(string.Format("Process ended with exit code: {0}", ExitCode));
-					if (proc != null) proc.Close();
-					m_resetEvent.Set();
-				};
-
+                ok = proc.Start();
+                if (!ok)
+                {
+                    m_logger.Error("Process was not started.");
+                    ExitCode = -1;
+                    m_resetEvent.Set();
+                }
+                else
+                {
+                    m_logger.Error("Process successfully started.");
+                }
+                
             }
-            finally
+            catch (Exception e)
             {
+                string msg = string.Format("An exception was thrown (and caught) " +
+                                           "when starting process {0}", ProcessPath);
+                m_logger.Error(msg, e);
                 m_resetEvent.Set();
+                ExitCode = -1;
+                ok = false;
             }
+            return ok;
         }
 
         /// <summary>

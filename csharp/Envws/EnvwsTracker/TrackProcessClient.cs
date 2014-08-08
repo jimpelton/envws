@@ -337,21 +337,24 @@ namespace EnvwsTracker
 
             ParseArgsAndOpenConfigFile(args);
 
+            string configFile = Config["Log4NetConfigFile"];
+            if (!File.Exists(configFile))
+            {
+                BasicConfigurator.Configure();
+                Console.WriteLine(string.Format("Logger configured with BasicConfigurator because " +
+                                                "config file {0} was not found.", configFile));
+            }
+            else
+            {
+                XmlConfigurator.Configure(new FileInfo(configFile));
+                Console.WriteLine(string.Format("Logger configured with config file: {0}", configFile));
+            }
+
             if (!CheckRequiredConfigOptions())
             {
                 logger.Fatal("Some configuration options did not pass checks."
                     + "Check config file for any incorrect values.");
                 Environment.Exit(0);
-            }
-
-            string configFile = Config["Log4NetConfigFile"];
-			if (!File.Exists(configFile))
-            {
-                BasicConfigurator.Configure();
-            }
-			else
-            {
-				XmlConfigurator.Configure(new FileInfo(configFile));
             }
 			
             TrackProcessClient client = new TrackProcessClient(
@@ -373,6 +376,7 @@ namespace EnvwsTracker
             else
             {
                 logger.Fatal("An orchestrator was not found. Exiting.");
+                Console.Error.WriteLine("An orchestrator was not found. Exiting.");
                 Environment.Exit(0);
             }
         }
@@ -381,23 +385,24 @@ namespace EnvwsTracker
 		// false if one check does not pass, but still checks everything.
         private static bool CheckRequiredConfigOptions()
         {
-            bool fatalErrorFound = false;
+            bool ok = true;
 
 			string envexe = Config["EnvExePath"];
             if (!File.Exists(envexe))
             {
-                logger.Fatal(String.Format("Envision executable not found: {0}", envexe));
-                fatalErrorFound = true;
+                // This is not a fatal error, so ok still = true.
+                logger.Error(String.Format("Envision executable not found: {0}", envexe));
             }
 
 			string workingDir = Config["BaseDirectory"];
 			if (!Directory.Exists(workingDir))
             {
+                // This is fatal, we need someplace to work!
                 logger.Fatal(String.Format("Working dir not found: {0}", workingDir));
-                fatalErrorFound = true;
+                ok = false;
             }
 
-            return fatalErrorFound;
+            return ok;
         }
 
 		// check command line args, and for config file.

@@ -90,6 +90,7 @@ namespace TrackProcess
             CheckForAndCreateDirectory(ProjectWorkingDir);
             RecursivelyCopyEntireDirectory(SourceDirectory, ProjectWorkingDir);
             int exitCode = -1;
+
             // If the job specifies that certain scenarios should be run, then loop through
             // them, executing each scenario in succession. Otherwise, run the job on
             // every scenario (Envision scenario indexes being at 1, with 0 meaning "all scenarios").
@@ -97,12 +98,12 @@ namespace TrackProcess
             {
                 foreach (int scenarioIndex in CurrentJob.ProjectScenarios)
                 {
-                    exitCode = runJob(scenarioIndex);
+                    exitCode = RunJob(scenarioIndex);
                 }
             }
             else
             {
-                exitCode = runJob(0);
+                exitCode = RunJob(0);
             }
 
             logger.Info(string.Format("Job completed: {0} ({1})", CurrentJob.FriendlyName, CurrentJob.Guid));
@@ -110,11 +111,21 @@ namespace TrackProcess
             return exitCode;
         }
 
-        private int runJob(int scenarioIndex)
+        /// <summary>
+        /// Run a single scenario. Passing 0 for scenarioIndex runs all scenarios.
+        /// Once the scenario is done executing, the results are copied into the
+        /// results directory.
+        /// </summary>
+        /// <param name="scenarioIndex">The scenario to run.</param>
+        /// <returns>The exit code returned by Envision. -1 is returned if the process failed to start.</returns>
+        private int RunJob(int scenarioIndex)
         {
             string envOpts = string.Format("/r:{0}", scenarioIndex);
             ProcessTracker tracker = new ProcessTracker(EnvExePath, envOpts);
-            tracker.Start();
+            if (!tracker.Start())
+            {
+                return -1;
+            }
             int exitCode = tracker.WaitForCompletion();
 
             CheckForAndCreateDirectory(ResultsDirectory);
@@ -128,10 +139,11 @@ namespace TrackProcess
         /// <summary>
         /// Sets up directories and checks for the requried files.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>true on success, false if something didn't exist.</returns>
         private bool CheckExistingFilesAndCreate()
         {
             bool rval = false;
+
             // create project directory
             if (CheckForAndCreateDirectory(ProjectWorkingDir))
             {
