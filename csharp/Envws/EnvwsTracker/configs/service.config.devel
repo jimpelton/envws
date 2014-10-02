@@ -3,7 +3,7 @@
 ;
 
 ; Working directory where files are downloaded to.
-BaseDirectory = D:\envision\ews_working
+BaseDirectory = C:\ews_working
 
 ; Appended to the zip filename (before extension)
 ResultsAppendStr = _results
@@ -11,11 +11,11 @@ ResultsAppendStr = _results
 ; Path to the envision executable.
 EnvExePath = C:\envision\envision.exe
 
-EnvisionOutputDirectoryName = Output
+EnvisionOutputDirectoryName = Outputs
 
 EnvLog = Envision.log
 
-RemoteBaseDirectory = D:\envision\envws
+RemoteBaseDirectory = \\geofiles1\vol1\home2\JimPelton\envision\envws\
 
 ResultsLogDirectory = logs
 

@@ -6,6 +6,16 @@ using System.Text;
 
 namespace EnvwsLib.Util
 {
+    /// <summary>
+    /// Singleton class that parses a config file of key=value pairs.
+    /// Multiple values for a single key can be specified by separating each
+    /// value with a ',':
+    ///     key=val1, val2, val3
+    /// 
+    /// Comments begin with a ';' or '#', but you can change that by changing the character
+    /// array called COMMENT_CHARS (don't remove anything, or you'll break older configs!).
+    /// 
+    /// </summary>
     public class ConfigParser
     {
         private const int MAX_CONFIG_FILE_LINES = 500;
@@ -29,7 +39,7 @@ namespace EnvwsLib.Util
         }
 
         /// <summary>
-        /// Get the first option for <code>key</code>.
+        /// Get the first value for specified key <code>key</code>.
         /// 
         /// If there is more than one value, then use GetAsList to 
         /// retrieve the entire list of strings.
@@ -43,9 +53,12 @@ namespace EnvwsLib.Util
                 return confOpts[key].ElementAt(0); 
             }
 			set
-            {
-                (confOpts[key] = new List<string>()).Add(value);
-            }
+			{
+			    if (confOpts.ContainsKey(key))
+			        confOpts[key].Add(value);
+			    else
+			        (confOpts[key] = new List<string>()).Add(value);
+			}
         }
 
         /// <summary>
@@ -207,6 +220,7 @@ namespace EnvwsLib.Util
                     logger.Error("Invalid option " + lineSplits[0] + " on line " + lnum);
                 }
             }
+
             return rval;
         }
     }

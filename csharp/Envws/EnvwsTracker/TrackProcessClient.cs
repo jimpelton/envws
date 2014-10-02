@@ -5,7 +5,6 @@ using System.ServiceModel;
 using System.ServiceModel.Discovery;
 using System.Threading;
 using System.Linq;
-using System.Linq.Expressions;
 
 using log4net;
 using log4net.Config;
@@ -179,7 +178,9 @@ namespace EnvwsTracker
         }
 
         /// <summary>
-        /// Handle an OnStatusChangedEvent, sent by the ProcessTrackerManager.
+        /// Handle an OnStatusChangedEvent. 
+        /// These events are sent by the ProcessTrackerManager when a status change occurs, such
+        /// as a job starts, ends, fails, etc.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -214,9 +215,11 @@ namespace EnvwsTracker
             }
             catch (EndpointNotFoundException e)
             {
+                
                 logger.Error("Orchestrator not found when returning new job.", e);
                 RequestJobFreqMillis = CHECKIN_FIVE_SECOND;
             }
+
             return rval;
         }
 
@@ -237,7 +240,7 @@ namespace EnvwsTracker
 
                     jd.TrackerGuid = Data.Guid;
 
-					//TODO: check thread safety.
+					//TODO: check thread safety for AddNewJob.
                     Manager.AddNewJob(jd);
                     
                     logger.Info(
@@ -318,25 +321,28 @@ namespace EnvwsTracker
             return client;
         }
 
+
+
         public static void Main(string[] args)
         {
 //            BasicConfigurator.Configure();
             logger = LogManager.GetLogger(typeof(TrackProcessClient));
 
             Config = ConfigParser.Instance();
-            Config.AddOpt("BaseDirectory")
-                  .AddOpt("EnvExePath")
-                  .AddOpt("EnvisionOutputDirectoryName")
-                  .AddOpt("EnvLog")
-                  .AddOpt("RemoteBaseDirectory")
-                  .AddOpt("ResultsLogDirectory")
-                  .AddOpt("ResultsDirectory")
-                  .AddOpt("Log4NetConfigFile")
-                  .SetDefaultOptValue("Log4NetConfigFile", "log4.config")
-                  .SetDefaultOptValue("EnvisionOutputDirectoryName", "Output");
-
+            Config.AddOpt(ConfigOpts.OptString(ConfigOpts.Key.BaseDirectory))
+                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.EnvExePath))
+                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.EnvisionOutputDirectoryName))
+                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.EnvLog))
+                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.RemoteBaseDirectory))
+                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.ResultsLogDirectory))
+                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.ResultsDirectory))
+                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.Log4NetConfigFile))
+                  .SetDefaultOptValue(ConfigOpts.OptString(ConfigOpts.Key.Log4NetConfigFile), "log4.config")
+                  .SetDefaultOptValue(ConfigOpts.OptString(ConfigOpts.Key.EnvisionOutputDirectoryName), "Output");
+            
             ParseArgsAndOpenConfigFile(args);
 
+            // setup Log4Net
             string configFile = Config["Log4NetConfigFile"];
             if (!File.Exists(configFile))
             {
@@ -350,6 +356,7 @@ namespace EnvwsTracker
                 Console.WriteLine("Logger configured with config file: {0}", configFile);
             }
 
+            // check that we have every option required
             if (!CheckRequiredConfigOptions())
             {
                 logger.Fatal("Some configuration options did not pass checks."

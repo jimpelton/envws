@@ -153,6 +153,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConfigEntry.cs" />
     <Compile Include="JobRunner.cs" />
     <Compile Include="StatusChangedEventArgs.cs" />
     <Compile Include="EnvisionJobRunner.cs" />

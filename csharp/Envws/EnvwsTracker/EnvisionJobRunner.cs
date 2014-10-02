@@ -54,15 +54,15 @@ namespace TrackProcess
 		public EnvisionJobRunner(JobData job) : base(job)
 		{
 		    ConfigParser parser = ConfigParser.Instance();
-            string localBase = parser["BaseDirectory"];
-		    string remoteBase = parser["RemoteBaseDirectory"];
-		    string remoteResultsDir = parser["ResultsDirectory"];
-		    string remoteResultsLogDir = parser["ResultsLogDirectory"];
-		    string envOutputDir = parser["EnvisionOutputDirectoryName"];
+            string localBase = parser[ConfigOpts.OptString(ConfigOpts.Key.BaseDirectory)];
+		    string remoteBase = parser[ConfigOpts.OptString(ConfigOpts.Key.RemoteBaseDirectory)];
+		    string remoteResultsDir = parser[ConfigOpts.OptString(ConfigOpts.Key.ResultsDirectory)];
+		    string remoteResultsLogDir = parser[ConfigOpts.OptString(ConfigOpts.Key.ResultsLogDirectory)];
+		    string envOutputDir = parser[ConfigOpts.OptString(ConfigOpts.Key.EnvisionOutputDirectoryName)];
 
             string remoteJobNameDir = job.FriendlyName == string.Empty ? job.Guid : job.FriendlyName;
             
-            EnvExePath = parser["EnvExePath"];
+            EnvExePath = parser[ConfigOpts.OptString(ConfigOpts.Key.EnvExePath)];
 		    ResultsDirectory = Path.Combine(remoteBase, remoteResultsDir, remoteJobNameDir);
 		    ResultsLogDirectory = Path.Combine(remoteBase, remoteResultsLogDir);
             ProjectWorkingDir = Path.Combine(localBase, job.Guid);
@@ -219,7 +219,7 @@ namespace TrackProcess
         }
 
         /// <summary>
-        /// Recusively copy sourcedirectory to destination path.
+        /// Recusively copy source directory to destination path.
         /// </summary>
         /// <param name="sourceDir"></param>
         /// <param name="destPath"></param>
