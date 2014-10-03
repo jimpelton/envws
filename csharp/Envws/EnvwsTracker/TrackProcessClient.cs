@@ -87,7 +87,7 @@ namespace EnvwsTracker
         /// <summary>
         /// Configuration details for this Tracker client.
         /// </summary>
-        public static ConfigParser Config { get; private set; }
+//        public static ConfigParser Config { get; private set; }
 
         /// <summary>
         /// The client proxy for the Orchestrator check-in service. 
@@ -328,22 +328,22 @@ namespace EnvwsTracker
 //            BasicConfigurator.Configure();
             logger = LogManager.GetLogger(typeof(TrackProcessClient));
 
-            Config = ConfigParser.Instance();
-            Config.AddOpt(ConfigOpts.OptString(ConfigOpts.Key.BaseDirectory))
-                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.EnvExePath))
-                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.EnvisionOutputDirectoryName))
-                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.EnvLog))
-                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.RemoteBaseDirectory))
-                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.ResultsLogDirectory))
-                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.ResultsDirectory))
-                  .AddOpt(ConfigOpts.OptString(ConfigOpts.Key.Log4NetConfigFile))
-                  .SetDefaultOptValue(ConfigOpts.OptString(ConfigOpts.Key.Log4NetConfigFile), "log4.config")
-                  .SetDefaultOptValue(ConfigOpts.OptString(ConfigOpts.Key.EnvisionOutputDirectoryName), "Output");
+            ConfigParser config = ConfigParser.Instance();
+            config.AddOpt(ConfigOpts.Get(ConfigKey.BaseDirectory))
+                .AddOpt(ConfigOpts.Get(ConfigKey.EnvExePath))
+                .AddOpt(ConfigOpts.Get(ConfigKey.EnvisionOutputDirectoryName))
+                .AddOpt(ConfigOpts.Get(ConfigKey.EnvLog))
+                .AddOpt(ConfigOpts.Get(ConfigKey.RemoteBaseDirectory))
+                .AddOpt(ConfigOpts.Get(ConfigKey.ResultsLogDirectory))
+                .AddOpt(ConfigOpts.Get(ConfigKey.ResultsDirectory))
+                .AddOpt(ConfigOpts.Get(ConfigKey.Log4NetConfigFile))
+                .SetDefaultOptValue(ConfigOpts.Get(ConfigKey.Log4NetConfigFile), "log4.config")
+                .SetDefaultOptValue(ConfigOpts.Get(ConfigKey.EnvisionOutputDirectoryName), "Output");
             
-            ParseArgsAndOpenConfigFile(args);
+            ParseArgsAndOpenConfigFile(args, config);
 
             // setup Log4Net
-            string configFile = Config["Log4NetConfigFile"];
+            string configFile = config[ConfigKey.Log4NetConfigFile].Value;
             if (!File.Exists(configFile))
             {
                 BasicConfigurator.Configure();
@@ -394,14 +394,14 @@ namespace EnvwsTracker
         {
             bool ok = true;
 
-			string envexe = Config["EnvExePath"];
+			string envexe = Config[ConfigOpts.Get(ConfigKey.EnvExePath)].Value;
             if (!File.Exists(envexe))
             {
                 // This is not a fatal error, so ok still = true.
                 logger.Warn(String.Format("Envision executable not found: {0}", envexe));
             }
 
-			string workingDir = Config["BaseDirectory"];
+			string workingDir = Config[ConfigOpts.Get(ConfigKey.BaseDirectory)].Value;
 			if (!Directory.Exists(workingDir))
             {
                 // This is fatal, we need someplace to work!
@@ -413,7 +413,7 @@ namespace EnvwsTracker
         }
 
 		// check command line args, and for config file.
-        private static void ParseArgsAndOpenConfigFile(string[] args)
+        private static void ParseArgsAndOpenConfigFile(string[] args, ConfigParser Config)
         {
             if (args.Length >= 1)
             {

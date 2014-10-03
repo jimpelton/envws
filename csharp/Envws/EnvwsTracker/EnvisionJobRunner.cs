@@ -7,6 +7,7 @@ namespace TrackProcess
     using EnvwsLib.DataContracts;
     using EnvwsLib.Tracker;
     using EnvwsLib.Util;
+    
     using log4net;
 
     public class EnvisionJobRunner : JobRunner
@@ -54,21 +55,30 @@ namespace TrackProcess
 		public EnvisionJobRunner(JobData job) : base(job)
 		{
 		    ConfigParser parser = ConfigParser.Instance();
-            string localBase = parser[ConfigOpts.OptString(ConfigOpts.Key.BaseDirectory)];
-		    string remoteBase = parser[ConfigOpts.OptString(ConfigOpts.Key.RemoteBaseDirectory)];
-		    string remoteResultsDir = parser[ConfigOpts.OptString(ConfigOpts.Key.ResultsDirectory)];
-		    string remoteResultsLogDir = parser[ConfigOpts.OptString(ConfigOpts.Key.ResultsLogDirectory)];
-		    string envOutputDir = parser[ConfigOpts.OptString(ConfigOpts.Key.EnvisionOutputDirectoryName)];
+            string localBase = parser[ConfigOpts.Get(ConfigKey.BaseDirectory)];
+		    string remoteBase = parser[ConfigOpts.Get(ConfigKey.RemoteBaseDirectory)];
+		    string remoteResultsDir = parser[ConfigOpts.Get(ConfigKey.ResultsDirectory)];
+		    string remoteResultsLogDir = parser[ConfigOpts.Get(ConfigKey.ResultsLogDirectory)];
+		    string envOutputDir = parser[ConfigOpts.Get(ConfigKey.EnvisionOutputDirectoryName)];
 
             string remoteJobNameDir = job.FriendlyName == string.Empty ? job.Guid : job.FriendlyName;
             
-            EnvExePath = parser[ConfigOpts.OptString(ConfigOpts.Key.EnvExePath)];
+            EnvExePath = parser[ConfigOpts.Get(ConfigKey.EnvExePath)];
 		    ResultsDirectory = Path.Combine(remoteBase, remoteResultsDir, remoteJobNameDir);
 		    ResultsLogDirectory = Path.Combine(remoteBase, remoteResultsLogDir);
             ProjectWorkingDir = Path.Combine(localBase, job.Guid);
             EnvisionOutputDir = Path.Combine(ProjectWorkingDir, envOutputDir);
             EnvxFilePath = Path.Combine(ProjectWorkingDir, job.EnvxName);
             SourceDirectory = job.ProjectSourceUri;
+
+            
+            logger.Info(EnvExePath);
+            logger.Info(ResultsDirectory);
+            logger.Info(ResultsLogDirectory);
+            logger.Info(ProjectWorkingDir);
+            logger.Info(EnvisionOutputDir);
+            logger.Info(EnvxFilePath);
+            logger.Info(SourceDirectory);
 		    
 		}
 
@@ -225,6 +235,7 @@ namespace TrackProcess
         /// <param name="destPath"></param>
         private void RecursivelyCopyEntireDirectory(string sourceDir, string destPath)
         {    
+            logger.Debug(string.Format("copyin' {0} to {1}", sourceDir, destPath));
             new Microsoft.VisualBasic.Devices.Computer().FileSystem.CopyDirectory(sourceDir, destPath);
         }
 

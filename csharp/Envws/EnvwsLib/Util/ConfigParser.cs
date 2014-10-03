@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,40 @@ using System.Text;
 
 namespace EnvwsLib.Util
 {
+    public class ConfigOption : IEnumerable<string>
+    {
+        private IList<string> values;
+
+        /// <summary>
+        /// Get the value associated witht his config option.
+        /// If you want all the values, then enumerate this ConfigOption and
+        /// collect them as they are returned.
+        /// </summary>
+        public string Value
+        {
+            get
+            {
+                return values[0];
+            }
+        }
+
+        public ConfigOption Add(string value)
+        {
+            values.Add(value);
+            return this;
+        }
+
+        IEnumerator<string> IEnumerable<string>.GetEnumerator()
+        {
+            return (IEnumerator<string>) this.GetEnumerator();
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            return ((IEnumerable) values).GetEnumerator();
+        }
+    }
+
     /// <summary>
     /// Singleton class that parses a config file of key=value pairs.
     /// Multiple values for a single key can be specified by separating each
@@ -26,8 +61,8 @@ namespace EnvwsLib.Util
 
         private static ConfigParser me = null;
 
-        private IDictionary<string, IList<string>>
-            confOpts = new Dictionary<string, IList<string>>();
+        private IDictionary<string, ConfigOption>
+            confOpts = new Dictionary<string, ConfigOption>();
 
         public string Filename { get; private set; }
 
@@ -45,20 +80,19 @@ namespace EnvwsLib.Util
         /// retrieve the entire list of strings.
         /// </summary>
         /// <param name="key">the key to get the option for</param>
-        /// <returns>A string that is the value associated with key.</returns>
-        public string this[string key]
+        /// <returns>A ConfigOption with one or more options asociated with the key.</returns>
+        public ConfigOption this[string key]
         {
-            get 
+            get
             {
-                return confOpts[key].ElementAt(0); 
+                return confOpts[key];
             }
-			set
-			{
-			    if (confOpts.ContainsKey(key))
-			        confOpts[key].Add(value);
-			    else
-			        (confOpts[key] = new List<string>()).Add(value);
-			}
+//			set
+//			{
+//                // the last seen key-value pair takes precedence, so always make a new list.
+//                ConfigOption opt = new ConfigOption().Add(value);
+//			    confOpts[key] = 
+//			}
         }
 
         /// <summary>
@@ -68,7 +102,7 @@ namespace EnvwsLib.Util
         /// </summary>
         /// <param name="key">the key to get the option for</param>
         /// <returns>A string that is the value associated with key.</returns>
-        public string Get(string key)
+        public ConfigOption Get(string key)
         {
             return this[key];
         }
@@ -78,31 +112,42 @@ namespace EnvwsLib.Util
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public IList<string> GetAsList(string key)
-        {
-            return confOpts[key];
-        }
+//        public ConfigOption GetAsList(string key)
+//        {
+//            return confOpts[key];
+//        }
 
         /// <summary>
-        /// Add an option to the parser. The parser will 
+        /// Add an option to the parser. The parser only accepts keys in the 
+        /// config file if they have already added via AddOpt().
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="key">The key to add.</param>
+        /// <returns>This ConfigParser instance.</returns>
         public ConfigParser AddOpt(string key)
         {
-            if (! confOpts.ContainsKey(key))
-                confOpts.Add(key, new List<string>());
+            if (!confOpts.ContainsKey(key))
+            { 
+                confOpts[key] = new ConfigOption();
+            }
 
             return this;
         }
 
-        public void AddOpts(IDictionary<string, IList<string>> opts)
-        {
-            confOpts = opts;
-        }
 
+//        public void AddOpts(IDictionary<string, IList<string>> opts)
+//        {
+//            confOpts = opts;
+//        }
+
+        /// <summary>
+        /// Associate a key with a default value.
+        /// </summary>
+        /// <param name="key">The key to associate the default value with</param>
+        /// <param name="value">The default value</param>
+        /// <returns>This ConfigParser instance</returns>
 		public ConfigParser SetDefaultOptValue(string key, string value)
         {
-            this[key] = value;
+            confOpts[key] = new ConfigOption().Add(value);
 
             return this;
         }
@@ -110,7 +155,7 @@ namespace EnvwsLib.Util
 		public string GetFormatedOptionsString()
         {
             StringBuilder sb = new StringBuilder();
-			foreach (KeyValuePair<string,IList<string>> p in confOpts)
+			foreach (ConfigOption p in confOpts.Values)
             {
                 sb.Append(p.Key + " ");
 				sb.AppendFormat("%s", p.Value.ToArray());
