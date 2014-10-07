@@ -65,8 +65,9 @@ namespace EnvwsTracker
         private int CheckInFreqMillis { get; set; }
 
 
-        private const int CHECKIN_ONE_SECOND = 1000;
-        private const int CHECKIN_FIVE_SECOND = 5000;
+        private const int CHECKIN_INTERVAL_NORMAL = 1000;
+        
+        private const int CHECKIN_INTERVAL_SLOW = 5000;
 
         /// <summary>
         /// A list of completed Jobs that this tracker has completed.
@@ -80,8 +81,8 @@ namespace EnvwsTracker
         public TrackProcessClient(TrackerData td /*, CheckInServiceClient client*/ )
         {
             Data = td;
-            RequestJobFreqMillis = CHECKIN_ONE_SECOND;
-            CheckInFreqMillis = CHECKIN_ONE_SECOND;
+            RequestJobFreqMillis = CHECKIN_INTERVAL_NORMAL;
+            CheckInFreqMillis = CHECKIN_INTERVAL_NORMAL;
         }
 
         /// <summary>
@@ -211,13 +212,13 @@ namespace EnvwsTracker
                 }
 
                 rval = true;
-                RequestJobFreqMillis = CHECKIN_ONE_SECOND;
+                RequestJobFreqMillis = CHECKIN_INTERVAL_NORMAL;
             }
             catch (EndpointNotFoundException e)
             {
                 
                 logger.Error("Orchestrator not found when returning new job.", e);
-                RequestJobFreqMillis = CHECKIN_FIVE_SECOND;
+                RequestJobFreqMillis = CHECKIN_INTERVAL_SLOW;
             }
 
             return rval;
@@ -253,7 +254,7 @@ namespace EnvwsTracker
                 else
                 {
                     // Orchestrator replied no jobs, set recheck time to one second.
-                    RequestJobFreqMillis = CHECKIN_ONE_SECOND;
+                    RequestJobFreqMillis = CHECKIN_INTERVAL_NORMAL;
                     logger.Debug("No new jobs on orchestrator, checking back in one second.");
                 }
             } 
@@ -262,7 +263,7 @@ namespace EnvwsTracker
                 logger.Error("Orchestrator not found when requesting new job.", e);
 
                 // If orchestrator is not found, back off the job request times.
-                RequestJobFreqMillis = CHECKIN_FIVE_SECOND;
+                RequestJobFreqMillis = CHECKIN_INTERVAL_SLOW;
             }
             finally
             {
@@ -343,7 +344,7 @@ namespace EnvwsTracker
             ParseArgsAndOpenConfigFile(args, config);
 
             // setup Log4Net
-            string configFile = config[ConfigKey.Log4NetConfigFile].Value;
+            string configFile = config[ConfigOpts.Get(ConfigKey.Log4NetConfigFile)].Value;
             if (!File.Exists(configFile))
             {
                 BasicConfigurator.Configure();
@@ -357,7 +358,7 @@ namespace EnvwsTracker
             }
 
             // check that we have every option required
-            if (!CheckRequiredConfigOptions())
+            if (!CheckRequiredConfigOptions(config))
             {
                 logger.Fatal("Some configuration options did not pass checks."
                     + "Check config file for any incorrect values.");
@@ -390,21 +391,21 @@ namespace EnvwsTracker
 
 		// check for config options that must exist for sure, return
 		// false if one check does not pass, but still checks everything.
-        private static bool CheckRequiredConfigOptions()
+        private static bool CheckRequiredConfigOptions(ConfigParser config)
         {
             bool ok = true;
 
-			string envexe = Config[ConfigOpts.Get(ConfigKey.EnvExePath)].Value;
+			string envexe = config[ConfigOpts.Get(ConfigKey.EnvExePath)].Value;
             if (!File.Exists(envexe))
             {
                 // This is not a fatal error, so ok still = true.
                 logger.Warn(String.Format("Envision executable not found: {0}", envexe));
             }
 
-			string workingDir = Config[ConfigOpts.Get(ConfigKey.BaseDirectory)].Value;
+			string workingDir = config[ConfigOpts.Get(ConfigKey.BaseDirectory)].Value;
 			if (!Directory.Exists(workingDir))
             {
-                // This is fatal, we need someplace to work!
+                // The working directory must already exist
                 logger.Fatal(String.Format("Working dir not found: {0}", workingDir));
                 ok = false;
             }

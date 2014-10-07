@@ -9,7 +9,9 @@ namespace EnvwsLib.Util
 {
     public class ConfigOption : IEnumerable<string>
     {
-        private IList<string> values;
+        private IList<string> values = new List<string>();
+
+        public string Key { get; set; }
 
         /// <summary>
         /// Get the value associated witht his config option.
@@ -18,15 +20,12 @@ namespace EnvwsLib.Util
         /// </summary>
         public string Value
         {
-            get
-            {
-                return values[0];
-            }
+            get { return values[0]; }
         }
 
-        public ConfigOption Add(string value)
+        public ConfigOption AddValue(string value)
         {
-            values.Add(value);
+                values.Add(value);
             return this;
         }
 
@@ -38,6 +37,29 @@ namespace EnvwsLib.Util
         public IEnumerator GetEnumerator()
         {
             return ((IEnumerable) values).GetEnumerator();
+        }
+
+        public override string ToString()
+        {
+            string s = string.Empty;
+            if (HasMultipleValues())
+            {
+                foreach (string v in values)
+                {
+                    s += v + ',';
+                }
+                s = s.TrimEnd(new char[] {',', ' '});
+            }
+            else
+            {
+                s = Value;
+            }
+            return s;
+        }
+
+        private bool HasMultipleValues()
+        {
+            return values.Count != 0;
         }
     }
 
@@ -87,12 +109,20 @@ namespace EnvwsLib.Util
             {
                 return confOpts[key];
             }
-//			set
-//			{
-//                // the last seen key-value pair takes precedence, so always make a new list.
-//                ConfigOption opt = new ConfigOption().Add(value);
-//			    confOpts[key] = 
-//			}
+			set
+			{
+                // the last seen key-value pair takes precedence, so always make a new list.
+			    
+			    if (!confOpts.ContainsKey(key))
+			        confOpts[key] = value;
+			    else
+			    {
+                    ConfigOption newOpt = value;
+			        ConfigOption existingOpt = confOpts[key];
+			        foreach (string o in newOpt)
+			            existingOpt.AddValue(o);
+			    }
+			}
         }
 
         /// <summary>
@@ -125,11 +155,7 @@ namespace EnvwsLib.Util
         /// <returns>This ConfigParser instance.</returns>
         public ConfigParser AddOpt(string key)
         {
-            if (!confOpts.ContainsKey(key))
-            { 
-                confOpts[key] = new ConfigOption();
-            }
-
+            confOpts[key] = new ConfigOption();
             return this;
         }
 
@@ -147,7 +173,7 @@ namespace EnvwsLib.Util
         /// <returns>This ConfigParser instance</returns>
 		public ConfigParser SetDefaultOptValue(string key, string value)
         {
-            confOpts[key] = new ConfigOption().Add(value);
+            confOpts[key] = new ConfigOption().AddValue(value);
 
             return this;
         }
@@ -251,13 +277,13 @@ namespace EnvwsLib.Util
                         }
                         foreach (string v in rhvals) 
                         { 
-                            confOpts[lineSplits[0]].Add(v); 
+                            confOpts[lineSplits[0]].AddValue(v); 
                         }
                     }
                     else 
                     {
                         //single value for this option
-                        confOpts[lineSplits[0]].Add(lineSplits[1]);  
+                        confOpts[lineSplits[0]].AddValue(lineSplits[1]);  
                     }
                 }
                 else

@@ -14,16 +14,6 @@ namespace TrackProcess
     {
         private readonly ILog logger = LogManager.GetLogger(typeof(EnvisionJobRunner));
 
-//        /// <summary>
-//        /// Gets or sets the absolute path to the working directory for this JobRunner.
-//        /// </summary>
-//        private string BaseDir { get; set; }
-//
-//        /// <summary>
-//        /// Gets or sets the absolute path to the remote data directory for this JobRunner.
-//        /// </summary>
-//        private string RemoteBaseDir { get; set; }
-
         /// <summary>
         /// Gets or sets the absolute path (including file name) of Envision.exe.
         /// </summary>
@@ -41,8 +31,14 @@ namespace TrackProcess
         /// </summary>
         private string ResultsDirectory { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private string SourceDirectory { get; set; }
 
+        /// <summary>
+        /// Absolute path to the Envx project file.
+        /// </summary>
         private string EnvxFilePath { get; set; }
 
         private string ResultsLogDirectory { get; set; }
@@ -55,15 +51,15 @@ namespace TrackProcess
 		public EnvisionJobRunner(JobData job) : base(job)
 		{
 		    ConfigParser parser = ConfigParser.Instance();
-            string localBase = parser[ConfigOpts.Get(ConfigKey.BaseDirectory)];
-		    string remoteBase = parser[ConfigOpts.Get(ConfigKey.RemoteBaseDirectory)];
-		    string remoteResultsDir = parser[ConfigOpts.Get(ConfigKey.ResultsDirectory)];
-		    string remoteResultsLogDir = parser[ConfigOpts.Get(ConfigKey.ResultsLogDirectory)];
-		    string envOutputDir = parser[ConfigOpts.Get(ConfigKey.EnvisionOutputDirectoryName)];
+            string localBase = parser[ConfigOpts.Get(ConfigKey.BaseDirectory)].Value;
+		    string remoteBase = parser[ConfigOpts.Get(ConfigKey.RemoteBaseDirectory)].Value;
+		    string remoteResultsDir = parser[ConfigOpts.Get(ConfigKey.ResultsDirectory)].Value;
+		    string remoteResultsLogDir = parser[ConfigOpts.Get(ConfigKey.ResultsLogDirectory)].Value;
+		    string envOutputDir = parser[ConfigOpts.Get(ConfigKey.EnvisionOutputDirectoryName)].Value;
 
             string remoteJobNameDir = job.FriendlyName == string.Empty ? job.Guid : job.FriendlyName;
             
-            EnvExePath = parser[ConfigOpts.Get(ConfigKey.EnvExePath)];
+            EnvExePath = parser[ConfigOpts.Get(ConfigKey.EnvExePath)].Value;
 		    ResultsDirectory = Path.Combine(remoteBase, remoteResultsDir, remoteJobNameDir);
 		    ResultsLogDirectory = Path.Combine(remoteBase, remoteResultsLogDir);
             ProjectWorkingDir = Path.Combine(localBase, job.Guid);

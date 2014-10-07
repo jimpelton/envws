@@ -3,7 +3,7 @@
 ;
 
 ; Working directory where files are downloaded to.
-BaseDirectory = C:\ews_working
+BaseDirectory = D:\ews_working
 
 ; Appended to the zip filename (before extension)
 ResultsAppendStr = _results
@@ -13,9 +13,13 @@ EnvExePath = C:\envision\envision.exe
 
 EnvisionOutputDirectoryName = bob
 
+; The name of the Envision log file that will be copied from the 
+; Envision directory.
 EnvLog = Envision.log
 
-RemoteBaseDirectory = \\geofiles1\vol1\home2\JimPelton\envision\envws\
+; The path to the shared storage that projects may be fetched from and
+; results may be copied to.
+RemoteBaseDirectory = D:\envision\envws\source
 
 ResultsLogDirectory = logs
 

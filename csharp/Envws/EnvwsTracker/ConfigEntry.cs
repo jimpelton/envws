@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using EnvwsLib.Util;
 
 namespace TrackProcess
 {
@@ -19,14 +20,14 @@ namespace TrackProcess
         private static readonly Dictionary<ConfigKey, string> OptionStrings =
             new Dictionary<ConfigKey, string>()
             {
-                {ConfigKey.BaseDirectory, "BaseDirectory"},
-                {ConfigKey.EnvExePath, "EnvExePath"},
-                {ConfigKey.EnvisionOutputDirectoryName, "EnvisionOutputDirectoryName"},
-                {ConfigKey.EnvLog, "EnvLog"},
-                {ConfigKey.RemoteBaseDirectory, "RemoteBaseDirectory"},
-                {ConfigKey.ResultsLogDirectory, "ResultsLogDirectory"},
-                {ConfigKey.ResultsDirectory, "ResultsDirectory"},
-                {ConfigKey.Log4NetConfigFile, "Log4NetConfigFile"}
+                {ConfigKey.BaseDirectory,"BaseDirectory"},
+                {ConfigKey.EnvExePath, ("EnvExePath")},
+                {ConfigKey.EnvisionOutputDirectoryName, ("EnvisionOutputDirectoryName")},
+                {ConfigKey.EnvLog, ("EnvLog")},
+                {ConfigKey.RemoteBaseDirectory, ("RemoteBaseDirectory")},
+                {ConfigKey.ResultsLogDirectory, ("ResultsLogDirectory")},
+                {ConfigKey.ResultsDirectory, ("ResultsDirectory")},
+                {ConfigKey.Log4NetConfigFile, ("Log4NetConfigFile")}
             };
 
         public static string Get(ConfigKey opt)
