@@ -5,13 +5,12 @@
 ; Working directory where files are downloaded to.
 BaseDirectory = D:\ews_working
 
-; Appended to the zip filename (before extension)
-ResultsAppendStr = _results
-
 ; Path to the envision executable.
 EnvExePath = C:\envision\envision.exe
 
-EnvisionOutputDirectoryName = bob
+; The name of the folder that Envision writes simulation results to
+; Relative to the project directory.
+EnvisionOutputDirectoryName = Outputs
 
 ; The name of the Envision log file that will be copied from the 
 ; Envision directory.
@@ -19,8 +18,12 @@ EnvLog = Envision.log
 
 ; The path to the shared storage that projects may be fetched from and
 ; results may be copied to.
-RemoteBaseDirectory = D:\envision\envws\source
+RemoteBaseDirectory = D:\envision\envws\
 
+; envision log files from each simulation are copied into
+; Relative to RemoteBaseDirectory
 ResultsLogDirectory = logs
 
+; Results simulation output are copied to.
+; Relative to RemoteBaseDirectory
 ResultsDirectory = output

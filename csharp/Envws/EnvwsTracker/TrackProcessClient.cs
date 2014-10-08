@@ -326,7 +326,6 @@ namespace EnvwsTracker
 
         public static void Main(string[] args)
         {
-//            BasicConfigurator.Configure();
             logger = LogManager.GetLogger(typeof(TrackProcessClient));
 
             ConfigParser config = ConfigParser.Instance();
@@ -428,6 +427,7 @@ namespace EnvwsTracker
                 if (File.Exists(configFile))
                 {
                     Config.Open(configFile);
+                    logger.Info(Config.GetFormatedOptionsString());
                 }
                 else
                 {

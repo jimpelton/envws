@@ -1,65 +1,62 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Text;
 
 namespace EnvwsLib.Util
 {
-    public class ConfigOption : IEnumerable<string>
+    /// <summary>
+    /// An option with list of values parsed from the config file.
+    /// </summary>
+    public class ConfigOption
     {
-        private IList<string> values = new List<string>();
+        public ConfigOption() { }
 
-        public string Key { get; set; }
+        public ConfigOption(string key)
+        {
+            Key = key;
+            
+        }
+
+        internal bool IsDefaultValue = false;
+
+        /// <summary>
+        /// Get they key for this configuration option.
+        /// </summary>
+        public string Key { get; private set; }
 
         /// <summary>
         /// Get the value associated witht his config option.
         /// If you want all the values, then enumerate this ConfigOption and
         /// collect them as they are returned.
         /// </summary>
-        public string Value
-        {
-            get { return values[0]; }
-        }
+        public string Value { get; set; }
 
-        public ConfigOption AddValue(string value)
+        public ConfigOption SetValue(string value)
         {
-                values.Add(value);
+            Value = value;
             return this;
         }
 
-        IEnumerator<string> IEnumerable<string>.GetEnumerator()
+        public ConfigOption SetValue(string value, bool defaultvalue)
         {
-            return (IEnumerator<string>) this.GetEnumerator();
+            SetValue(value);
+            IsDefaultValue = defaultvalue;
+            return this;
         }
 
-        public IEnumerator GetEnumerator()
+        public ConfigOption SetKey(string key)
         {
-            return ((IEnumerable) values).GetEnumerator();
+            Key = key;
+            return this;
         }
 
         public override string ToString()
         {
-            string s = string.Empty;
-            if (HasMultipleValues())
-            {
-                foreach (string v in values)
-                {
-                    s += v + ',';
-                }
-                s = s.TrimEnd(new char[] {',', ' '});
-            }
-            else
-            {
-                s = Value;
-            }
-            return s;
-        }
-
-        private bool HasMultipleValues()
-        {
-            return values.Count != 0;
+            return string.Format("%s: %s", Key, Value);
         }
     }
 
@@ -76,6 +73,7 @@ namespace EnvwsLib.Util
     public class ConfigParser
     {
         private const int MAX_CONFIG_FILE_LINES = 500;
+
         private static readonly char[] COMMENT_CHARS = {';','#'};
 
         private log4net.ILog 
@@ -86,10 +84,17 @@ namespace EnvwsLib.Util
         private IDictionary<string, ConfigOption>
             confOpts = new Dictionary<string, ConfigOption>();
 
+        /// <summary>
+        /// Gets the filename of the file being parsed.
+        /// </summary>
         public string Filename { get; private set; }
 
         private ConfigParser() { }
 
+        /// <summary>
+        /// Get the instance of the ConfigParser.
+        /// </summary>
+        /// <returns>The current ConfigParser instance.</returns>
         public static ConfigParser Instance()
         {
             return me ?? (me = new ConfigParser());
@@ -103,24 +108,23 @@ namespace EnvwsLib.Util
         /// </summary>
         /// <param name="key">the key to get the option for</param>
         /// <returns>A ConfigOption with one or more options asociated with the key.</returns>
-        public ConfigOption this[string key]
+        public ConfigOption this[string key] 
         {
             get
             {
                 return confOpts[key];
             }
-			set
+
+			private set
 			{
-                // the last seen key-value pair takes precedence, so always make a new list.
-			    
 			    if (!confOpts.ContainsKey(key))
+			    {
+			        value.SetKey(key);
 			        confOpts[key] = value;
+			    }
 			    else
 			    {
-                    ConfigOption newOpt = value;
-			        ConfigOption existingOpt = confOpts[key];
-			        foreach (string o in newOpt)
-			            existingOpt.AddValue(o);
+			        confOpts[key] = value;
 			    }
 			}
         }
@@ -138,16 +142,6 @@ namespace EnvwsLib.Util
         }
 
         /// <summary>
-        /// Get all values for <code>key</code>.
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-//        public ConfigOption GetAsList(string key)
-//        {
-//            return confOpts[key];
-//        }
-
-        /// <summary>
         /// Add an option to the parser. The parser only accepts keys in the 
         /// config file if they have already added via AddOpt().
         /// </summary>
@@ -155,15 +149,9 @@ namespace EnvwsLib.Util
         /// <returns>This ConfigParser instance.</returns>
         public ConfigParser AddOpt(string key)
         {
-            confOpts[key] = new ConfigOption();
+            this[key] = new ConfigOption();
             return this;
         }
-
-
-//        public void AddOpts(IDictionary<string, IList<string>> opts)
-//        {
-//            confOpts = opts;
-//        }
 
         /// <summary>
         /// Associate a key with a default value.
@@ -173,8 +161,8 @@ namespace EnvwsLib.Util
         /// <returns>This ConfigParser instance</returns>
 		public ConfigParser SetDefaultOptValue(string key, string value)
         {
-            confOpts[key] = new ConfigOption().AddValue(value);
-
+            confOpts[key].SetValue(value);
+            confOpts[key].IsDefaultValue = true;
             return this;
         }
 
@@ -183,9 +171,9 @@ namespace EnvwsLib.Util
             StringBuilder sb = new StringBuilder();
 			foreach (ConfigOption p in confOpts.Values)
             {
-                sb.Append(p.Key + " ");
-				sb.AppendFormat("%s", p.Value.ToArray());
-                sb.AppendLine();
+                sb.Append(p + "\n");
+//				sb.AppendFormat("%s", p.Value.ToArray());
+//                sb.AppendLine();
             }
 
             return sb.ToString();
@@ -277,13 +265,13 @@ namespace EnvwsLib.Util
                         }
                         foreach (string v in rhvals) 
                         { 
-                            confOpts[lineSplits[0]].AddValue(v); 
+                            confOpts[lineSplits[0]].SetValue(v, false); 
                         }
                     }
                     else 
                     {
                         //single value for this option
-                        confOpts[lineSplits[0]].AddValue(lineSplits[1]);  
+                        confOpts[lineSplits[0]].SetValue(lineSplits[1], false);  
                     }
                 }
                 else

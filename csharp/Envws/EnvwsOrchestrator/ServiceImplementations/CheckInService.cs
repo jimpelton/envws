@@ -21,10 +21,9 @@ namespace EnvwsOrchestrator
         {
             td.LastCheckinTime = Utils.CurrentUTCMillies();
 
-            logger.Info("Tracker just checked in: " + td);
+            logger.Debug("Tracker just checked in: " + td);
             
             Q.UpdateTracker(td);
-            logger.Info("Updated tracker: " + td);
             return true;
         }
 

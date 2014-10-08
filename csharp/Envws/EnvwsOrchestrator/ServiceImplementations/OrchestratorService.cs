@@ -27,7 +27,7 @@ namespace EnvwsOrchestrator
 
         public TrackerData[] TrackerStatus()
         {
-            logger.Info("Updating tracker status per client request.");
+            logger.Debug("Updating tracker status per client request.");
             TrackerData[] trackerData;
             TrackerQueue.GetTrackersArray(out trackerData);
             return trackerData;
@@ -45,19 +45,19 @@ namespace EnvwsOrchestrator
 
         public int NumWaitingJobs()
         {
-            logger.Info("NumWaitingJobs called");
+            logger.Debug("NumWaitingJobs called");
             return TrackerQueue.NumWaitingJobs();
         }
 
         public int NumIdleTrackers()
         {
-            logger.Info("NumIdleTrackers called");
+            logger.Debug("NumIdleTrackers called");
             return TrackerQueue.IdleTrackers();
         }
 
         public int NumRunningTrackers()
         {
-            logger.Info("NumRunningTrackers called");
+            logger.Debug("NumRunningTrackers called");
             return TrackerQueue.RunningTrackers();
         }
     } // class OrchestratorService

@@ -107,7 +107,7 @@ namespace EnvwsOrchestrator
         public bool GetJob(out JobData j)
         {
             j = null;
-            if (this.waitingJobs.Count <= 0)
+            if (waitingJobs.Count <= 0)
             {
                 return false;
             }
@@ -135,6 +135,7 @@ namespace EnvwsOrchestrator
             jobs.AddRange(finishedJobs.Values);
             jobs.AddRange(runningJobs.Values);
             jobs.AddRange(waitingJobs);
+
             return jobs.ToArray();     
         }
 
@@ -213,7 +214,6 @@ namespace EnvwsOrchestrator
         /// </param>
         public void GetTrackersArray(out TrackerData[] trackers)
         {
-            //int i = 0;
             lock (allTrackers)
             {
                 trackers = new TrackerData[allTrackers.Count];
@@ -223,8 +223,8 @@ namespace EnvwsOrchestrator
         
         private void OnScrubTimer(object state)
         {
-            int lateness = this.FindLateTrackersAndSetNoResponse();
-            logger.Info(lateness + " trackers have not checked in.");
+            int lateness = FindLateTrackersAndSetNoResponse();
+            logger.Debug(lateness + " trackers have not checked in.");
             scrubTimer.Change(1000, Timeout.Infinite);
         }
 
@@ -241,7 +241,7 @@ namespace EnvwsOrchestrator
                     {
                         td.Status = TrackerStatus.NO_RESPONSE;
                         lateTrackersCount++;
-                        logger.Info("Tracker " + td.Guid + " has been marked as late.");
+                        logger.Debug("Tracker " + td.Guid + " has been marked as late.");
                     }
                     else
                     {

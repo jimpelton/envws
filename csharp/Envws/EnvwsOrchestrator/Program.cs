@@ -18,7 +18,6 @@ namespace EnvwsOrchestrator
 
         public static void Main(string[] args)
         {
-//            BasicConfigurator.Configure();
             string cmd = string.Empty;	
 			if (args.Length >= 1)
             {
@@ -47,29 +46,29 @@ namespace EnvwsOrchestrator
 
         public void Start()
         {
-            if (this.trackerHost != null)
+            if (trackerHost != null)
             {
-                this.trackerHost.Close();
+                trackerHost.Close();
             }
 
-            if (this.clientHost != null)
+            if (clientHost != null)
             {
-                this.clientHost.Close();
+                clientHost.Close();
             }
 
-            this.trackerHost = new ServiceHost(typeof(CheckInService));
-            this.clientHost = new ServiceHost(typeof(OrchestratorService));
+            trackerHost = new ServiceHost(typeof(CheckInService));
+            clientHost = new ServiceHost(typeof(OrchestratorService));
 
-            this.trackerHost.Description.Behaviors.Add(new ServiceDiscoveryBehavior());
-            this.trackerHost.AddServiceEndpoint(new UdpDiscoveryEndpoint());
+            trackerHost.Description.Behaviors.Add(new ServiceDiscoveryBehavior());
+            trackerHost.AddServiceEndpoint(new UdpDiscoveryEndpoint());
 
-            const int FiveSeconds = 5000;
-            TrackerQueue tq = new TrackerQueue(FiveSeconds);
+            const int fiveSeconds = 5000;
+            TrackerQueue tq = new TrackerQueue(fiveSeconds);
             CheckInService.Q = tq;
             OrchestratorService.TrackerQueue = tq;
             
-            this.trackerHost.Open();
-            this.clientHost.Open();
+            trackerHost.Open();
+            clientHost.Open();
             OrchestratorService.TrackerQueue.StartScrubLoop();
 
             logger.Info("Orchestrator service is ready.");
@@ -77,17 +76,17 @@ namespace EnvwsOrchestrator
 
         public void Stop()
         {
-            if (this.trackerHost != null) 
+            if (trackerHost != null) 
             { 
-                this.trackerHost.Close();
-                this.trackerHost = null;
+                trackerHost.Close();
+                trackerHost = null;
                 logger.Info("CheckIn service stopped.");
             }
 
-            if (this.clientHost != null)
+            if (clientHost != null)
             {
-                this.clientHost.Close();
-                this.clientHost = null;
+                clientHost.Close();
+                clientHost = null;
                 logger.Info("Client service stopped.");
             }
             

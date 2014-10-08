@@ -23,21 +23,24 @@ namespace TrackProcess
 
         /// <summary>
 		/// This projects personal working directory.
+		/// Local file system
         /// </summary>
         private string ProjectWorkingDir { get; set; }
 
         /// <summary>
         /// The location that Envision output is copied to after a job is run.
+        /// remote file system
         /// </summary>
-        private string ResultsDirectory { get; set; }
+        private string RemoteResultsDirectory { get; set; }
 
         /// <summary>
-        /// 
+        /// project directory and data on remote file system
         /// </summary>
-        private string SourceDirectory { get; set; }
+        private string RemoteSourceDirectory { get; set; }
 
         /// <summary>
         /// Absolute path to the Envx project file.
+        /// Local file system.
         /// </summary>
         private string EnvxFilePath { get; set; }
 
@@ -51,31 +54,29 @@ namespace TrackProcess
 		public EnvisionJobRunner(JobData job) : base(job)
 		{
 		    ConfigParser parser = ConfigParser.Instance();
+
             string localBase = parser[ConfigOpts.Get(ConfigKey.BaseDirectory)].Value;
 		    string remoteBase = parser[ConfigOpts.Get(ConfigKey.RemoteBaseDirectory)].Value;
 		    string remoteResultsDir = parser[ConfigOpts.Get(ConfigKey.ResultsDirectory)].Value;
 		    string remoteResultsLogDir = parser[ConfigOpts.Get(ConfigKey.ResultsLogDirectory)].Value;
 		    string envOutputDir = parser[ConfigOpts.Get(ConfigKey.EnvisionOutputDirectoryName)].Value;
-
             string remoteJobNameDir = job.FriendlyName == string.Empty ? job.Guid : job.FriendlyName;
             
             EnvExePath = parser[ConfigOpts.Get(ConfigKey.EnvExePath)].Value;
-		    ResultsDirectory = Path.Combine(remoteBase, remoteResultsDir, remoteJobNameDir);
+		    RemoteResultsDirectory = Path.Combine(remoteBase, remoteResultsDir, remoteJobNameDir);
 		    ResultsLogDirectory = Path.Combine(remoteBase, remoteResultsLogDir);
             ProjectWorkingDir = Path.Combine(localBase, job.Guid);
             EnvisionOutputDir = Path.Combine(ProjectWorkingDir, envOutputDir);
             EnvxFilePath = Path.Combine(ProjectWorkingDir, job.EnvxName);
-            SourceDirectory = job.ProjectSourceUri;
-
+		    RemoteSourceDirectory = Path.Combine(remoteBase, job.ProjectSourceUri);
             
             logger.Info(EnvExePath);
-            logger.Info(ResultsDirectory);
+            logger.Info(RemoteResultsDirectory);
             logger.Info(ResultsLogDirectory);
             logger.Info(ProjectWorkingDir);
             logger.Info(EnvisionOutputDir);
             logger.Info(EnvxFilePath);
-            logger.Info(SourceDirectory);
-		    
+            logger.Info(RemoteSourceDirectory);
 		}
 
         /// <summary>
@@ -94,7 +95,7 @@ namespace TrackProcess
 
             // Copy the project folder onto the working filesystem.
             CheckForAndCreateDirectory(ProjectWorkingDir);
-            RecursivelyCopyEntireDirectory(SourceDirectory, ProjectWorkingDir);
+            RecursivelyCopyEntireDirectory(RemoteSourceDirectory, ProjectWorkingDir);
             
             int ec = -1;
             bool rval = false;
@@ -106,30 +107,24 @@ namespace TrackProcess
             {
                 foreach (int scenarioIndex in CurrentJob.ProjectScenarios)
                 {
-                    logger.Debug(string.Format("Running scenario: {0}, {1} ({2})", scenarioIndex,
-                        CurrentJob.FriendlyName, CurrentJob.Guid));
-                    
+                    logger.Debug(string.Format("Running scenario: {0}, {1} ({2})", scenarioIndex, CurrentJob.FriendlyName, CurrentJob.Guid));
                     rval = RunJob(scenarioIndex, ref ec);
-                    
-                    //TODO: ResultsDirectory might get overwritten.
-                    CheckForAndCreateDirectory(ResultsDirectory);
+                    //TODO: ResultsDirectory might get overwritten (should check if it exists already and fail if it does).
+                    CheckForAndCreateDirectory(RemoteResultsDirectory);
                     RecursivelyCopyEntireDirectory(Path.Combine(ProjectWorkingDir, EnvisionOutputDir),
-                        ResultsDirectory);
+                        RemoteResultsDirectory );
                 }
             }
             else
             {
                 rval = RunJob(0, ref ec);
-
-                CheckForAndCreateDirectory(ResultsDirectory);
-                RecursivelyCopyEntireDirectory(Path.Combine(ProjectWorkingDir, EnvisionOutputDir),
-                    ResultsDirectory);
+                CheckForAndCreateDirectory(RemoteResultsDirectory);
+                RecursivelyCopyEntireDirectory(Path.Combine(ProjectWorkingDir, EnvisionOutputDir), RemoteResultsDirectory);
             }
 
-            logger.Debug(string.Format("Job completed: {0} ({1})", CurrentJob.FriendlyName, CurrentJob.Guid));
-            
             exitCode = ec;
-            
+            logger.Debug(string.Format("Job completed: {0} ({1})", CurrentJob.FriendlyName, CurrentJob.Guid));
+
             return rval;
         }
 
@@ -150,11 +145,12 @@ namespace TrackProcess
             ProcessTracker tracker = new ProcessTracker(EnvExePath, envOpts);
             if (tracker.Start())
             {
-                exitCode = tracker.WaitForCompletion();
+                tracker.WaitForCompletion();
                 logger.Debug(string.Format("Envision exited. Exit code: {0}", exitCode));
                 rval = true;
             }
 
+            exitCode = tracker.ExitCode;
             return rval;
         }
 
@@ -169,8 +165,7 @@ namespace TrackProcess
             // create project directory
             if (CheckForAndCreateDirectory(ProjectWorkingDir))
             {
-                logger.Debug(string.Format("Created new directory for source project: {0}", 
-                    ProjectWorkingDir));
+                logger.Debug(string.Format("Created new directory for source project: {0}", ProjectWorkingDir));
                 rval = true;
             }
             else
@@ -184,8 +179,7 @@ namespace TrackProcess
             // check that envx file exists.
             if (!File.Exists(EnvxFilePath))
             {
-                logger.Error(string.Format("Envx project file does not exist, skipping job: {0}, {1}", 
-                    EnvxFilePath, CurrentJob.Guid));
+                logger.Error(string.Format("Envx project file does not exist, skipping job: {0}, {1}", EnvxFilePath, CurrentJob.Guid));
                 rval = false;
             }
 
@@ -197,8 +191,6 @@ namespace TrackProcess
             string envLogFilePath = Path.Combine(ProjectWorkingDir, EnvLogFileName);
             CopySingleFile(envLogFilePath, ResultsLogDirectory, EnvLogFileName);
         }
-
-
 
         /// <summary>
         /// Check if a dir exists and create the dir if it does not exist.
@@ -219,8 +211,10 @@ namespace TrackProcess
                 {
                      logger.Error(string.Format("Could not create directory: {0}", dirPath));
                 }
+
                 rval = true;
             }
+
             return rval;
         }
 
@@ -231,7 +225,7 @@ namespace TrackProcess
         /// <param name="destPath"></param>
         private void RecursivelyCopyEntireDirectory(string sourceDir, string destPath)
         {    
-            logger.Debug(string.Format("copyin' {0} to {1}", sourceDir, destPath));
+            logger.Debug(string.Format("Copying {0} to {1}", sourceDir, destPath));
             new Microsoft.VisualBasic.Devices.Computer().FileSystem.CopyDirectory(sourceDir, destPath);
         }
 
@@ -256,7 +250,7 @@ namespace TrackProcess
                 }
                 
                 // Combine and GetFileName will check args for invalid chars.
-                string path = Path.Combine(destDir, Path.GetFileName(destFile));
+                // string path = Path.Combine(destDir, Path.GetFileName(destFile));
 
                 File.Copy(sourceFile, destFile);
                 logger.Debug(string.Format("Successfuly copied: {0} to {1}", sourceFile, destFile));
@@ -264,7 +258,7 @@ namespace TrackProcess
             catch (Exception e)
             {
                 // string f = Path.GetFileName(sourceFile);
-                 logger.Error(string.Format("Exception when copying file: {0}", sourceFile), e);
+                logger.Error(string.Format("Exception when copying file: {0}", sourceFile), e);
             }
         }
 
