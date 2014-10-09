@@ -263,24 +263,6 @@ namespace TrackProcess
         }
 
         /// <summary>
-        /// Delete a file given by <code>file</code>.
-        /// </summary>
-        /// <param name="file">
-        /// The path to the file to delete.
-        /// </param>
-        private void DeleteSingleFile(string file)
-        {
-            try
-            {
-                File.Delete(file);
-            }
-            catch (Exception e)
-            {
-                 logger.Error(string.Format("Exception when deleting file: {0}", file), e);
-            }
-        }
-
-        /// <summary>
         /// Downloads and unzip's job data.
         /// See setupJobData() for params description.
         /// </summary>
