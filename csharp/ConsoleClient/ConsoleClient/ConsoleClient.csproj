@@ -128,10 +128,6 @@
     <None Include="Properties\DataSources\TrackProcessLib.TrackerData.datasource" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Envws\ClientLib\ClientLib.csproj">
-      <Project>{2ce58f59-ad5a-41c7-8c2b-7ce717231655}</Project>
-      <Name>ClientLib</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Envws\EnvwsLib\EnvwsLib.csproj">
       <Project>{f7d1323a-5e2d-427d-bf51-6b88f5c9d934}</Project>
       <Name>EnvwsLib</Name>

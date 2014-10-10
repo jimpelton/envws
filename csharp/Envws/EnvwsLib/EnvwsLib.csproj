@@ -113,6 +113,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client\OrchestratorConnection.cs" />
+    <Compile Include="Client\SubmitJobEventArgs.cs" />
+    <Compile Include="Client\TrackersPingedEventArgs.cs" />
     <Compile Include="DataContracts\JobData.cs" />
     <Compile Include="Events\JobCompletedEventArgs.cs" />
     <Compile Include="Events\StatusChangedEventArgs.cs" />

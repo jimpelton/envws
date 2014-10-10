@@ -3,6 +3,15 @@ using System.Runtime.Serialization;
 
 namespace EnvwsLib.DataContracts
 {
+    public enum JobStatus
+    {
+        QUEUED,           // Queued on orchestrator
+        RUNNNG,           // Running on tracker
+        COMPLETE,         // Completed
+
+        FAILED,           // Failed for some reason?
+        FAILED_EXIT_CODE  // Failed--tracker child proc returned non-zero exit code.
+    }
 
     [DataContract]
     public class JobData
@@ -75,9 +84,13 @@ namespace EnvwsLib.DataContracts
         [DataMember]
         public string TrackerGuid { get; set; }
 
+        [DataMember]
+        public JobStatus Status { get; set; }
+
         /// <summary>
         /// Gets or sets the private working set size (memory usage) of this job.
         /// </summary>
+        //TODO: JobPrivateWorkingSetSize not used.
         [DataMember]
         public long JobPrivateWorkingSetSize { get; set; }
 

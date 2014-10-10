@@ -6,11 +6,11 @@ using System.ServiceModel;
 using System.ServiceModel.Configuration;
 using System.Threading;
 
-namespace ClientLib.Client
-{
-    using EnvwsLib.ServiceProxies;
-    using EnvwsLib.DataContracts;
 
+namespace EnvwsLib.Client
+{
+    using DataContracts;
+    using ServiceProxies;
     using log4net;
 
     public class OrchestratorConnection

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using EnvwsLib.DataContracts;
 
-namespace ClientLib.Client
+namespace EnvwsLib.Client
 {
-    using EnvwsLib.ServiceProxies;
-    using EnvwsLib.DataContracts;
-
     public class TrackersPingedEventArgs : EventArgs
     {
         /// <summary>

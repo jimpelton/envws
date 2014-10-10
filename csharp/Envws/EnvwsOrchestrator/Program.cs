@@ -1,10 +1,11 @@
+using System;
+using System.ServiceModel;
+using System.ServiceModel.Description;
+using System.ServiceModel.Discovery;
+
 namespace EnvwsOrchestrator
 {
-    using System;
-    using System.ServiceModel;
-    using System.ServiceModel.Description;
-    using System.ServiceModel.Discovery;
-    using System.ServiceProcess;
+    
 
     using log4net;
     using log4net.Config;
@@ -62,9 +63,9 @@ namespace EnvwsOrchestrator
             trackerHost.Description.Behaviors.Add(new ServiceDiscoveryBehavior());
             trackerHost.AddServiceEndpoint(new UdpDiscoveryEndpoint());
 
-            const int fiveSeconds = 5000;
-            TrackerQueue tq = new TrackerQueue(fiveSeconds);
-            CheckInService.Q = tq;
+            const int fiveSecondsPingTime = 5000;
+            TrackerQueue tq = new TrackerQueue(fiveSecondsPingTime);
+            CheckInService.TrackerQueue = tq;
             OrchestratorService.TrackerQueue = tq;
             
             trackerHost.Open();

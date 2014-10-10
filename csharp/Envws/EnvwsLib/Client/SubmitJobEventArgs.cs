@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-
-namespace ClientLib.Client
+namespace EnvwsLib.Client
 {
     public class SubmitJobEventArgs : EventArgs
     {

@@ -1,14 +1,13 @@
 ﻿
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Threading;
-using log4net;
 
 namespace EnvwsOrchestrator
 {
+    using log4net;
+
 	using EnvwsLib.Util;
-    using EnvwsLib.Tracker;
     using EnvwsLib.DataContracts;
     using System.Collections.Generic;
 
@@ -96,7 +95,8 @@ namespace EnvwsOrchestrator
         }
        
         /// <summary>
-        /// Initializes j with the job next in the waiting jobs queue.
+        /// Initializes j with the job next in the waiting jobs queue. If no jobs available j is initialized
+        /// to null and false is returned.
         /// </summary>
         /// <param name="j">
         /// A jobdata that will be initialized with then next job in the queue.

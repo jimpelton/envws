@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnvwsOrchestrator", "EnvwsO
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnvwsTracker", "EnvwsTracker\EnvwsTracker.csproj", "{7127940F-12CD-4D16-A8F8-4E5FFF5E0F5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientLib", "ClientLib\ClientLib.csproj", "{2CE58F59-AD5A-41C7-8C2B-7CE717231655}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Resources", "Resources", "{1A93DF1B-E3AF-44F5-B8EB-B5B2C8AC2719}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{D7F8480F-3388-476D-8A01-5F130433AF64}"
@@ -85,22 +83,6 @@ Global
 		{7127940F-12CD-4D16-A8F8-4E5FFF5E0F5E}.Release-Deploy|Any CPU.Build.0 = Release-Deploy|Any CPU
 		{7127940F-12CD-4D16-A8F8-4E5FFF5E0F5E}.Release-Deploy|x64.ActiveCfg = Release-Deploy|x64
 		{7127940F-12CD-4D16-A8F8-4E5FFF5E0F5E}.Release-Deploy|x64.Build.0 = Release-Deploy|x64
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Debug|x64.ActiveCfg = Debug|x64
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Debug|x64.Build.0 = Debug|x64
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Debug-Deploy|Any CPU.ActiveCfg = Debug|Any CPU
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Debug-Deploy|Any CPU.Build.0 = Debug|Any CPU
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Debug-Deploy|x64.ActiveCfg = Debug|x64
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Debug-Deploy|x64.Build.0 = Debug|x64
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Release|x64.ActiveCfg = Release|x64
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Release|x64.Build.0 = Release|x64
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Release-Deploy|Any CPU.ActiveCfg = Release|Any CPU
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Release-Deploy|Any CPU.Build.0 = Release|Any CPU
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Release-Deploy|x64.ActiveCfg = Release|x64
-		{2CE58F59-AD5A-41C7-8C2B-7CE717231655}.Release-Deploy|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -5,7 +5,6 @@ namespace EnvwsOrchestrator
     using log4net;
     using EnvwsLib.ServiceContracts;
     using EnvwsLib.DataContracts;
-    using EnvwsLib.Tracker;
 
     public class OrchestratorService : IOrchestratorService
     {

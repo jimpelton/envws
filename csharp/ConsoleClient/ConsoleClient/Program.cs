@@ -5,7 +5,6 @@ using System.Linq;
 
 namespace ConsoleClient
 {
-    using ClientLib;
     using EnvwsLib.DataContracts; 
 
     public class Command

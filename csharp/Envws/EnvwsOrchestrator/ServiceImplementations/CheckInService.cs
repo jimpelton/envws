@@ -15,7 +15,7 @@ namespace EnvwsOrchestrator
         private static ILog
             logger = LogManager.GetLogger(typeof(OrchestratorService));
 
-        public static TrackerQueue Q { get; set; }
+        public static TrackerQueue TrackerQueue { get; set; }
 
         public bool CheckIn(TrackerData td)
         {
@@ -23,20 +23,21 @@ namespace EnvwsOrchestrator
 
             logger.Debug("Tracker just checked in: " + td);
             
-            Q.UpdateTracker(td);
+            TrackerQueue.UpdateTracker(td);
             return true;
         }
 
         public JobData RequestJob()
         {
             JobData j;
-            Q.GetJob(out j);
+            TrackerQueue.GetJob(out j);
             return j;
         }
 
         public void ReturnFinishedJob(JobData j)
         {
-            Q.PushFinishedJob(j);
+            
+            TrackerQueue.PushFinishedJob(j);
         }
 
         //private string GetIP()
