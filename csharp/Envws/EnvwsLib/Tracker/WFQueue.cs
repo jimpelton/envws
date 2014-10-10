@@ -40,13 +40,6 @@ namespace EnvwsLib.Tracker
             return m_waiting.Count;
         }
 
-        //public int SizeWorking()
-        //{
-        //    int rval = 0;
-        //    rval = m_working.Count;
-        //    return rval;
-        //}
-
         public int SizeFinished()
         {
             return m_finished.Count;
