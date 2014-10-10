@@ -91,7 +91,7 @@ namespace TrackProcess
         //TODO: ExecuteJob return error code.
         public override bool ExecuteJob(ref int exitCode)
         {
-            logger.Debug(string.Format("Job started: {0} ({1}) ", CurrentJob.FriendlyName, CurrentJob.Guid));
+            logger.Info(string.Format("Job starting: {0} ({1}) ", CurrentJob.FriendlyName, CurrentJob.Guid));
 
             // Copy the project folder onto the working filesystem.
             CheckForAndCreateDirectory(ProjectWorkingDir);
@@ -209,10 +209,12 @@ namespace TrackProcess
                 Directory.CreateDirectory(dirPath);
                 if (!Directory.Exists(dirPath))
                 {
-                     logger.Error(string.Format("Could not create directory: {0}", dirPath));
+                    logger.Error(string.Format("Could not create directory: {0}", dirPath));
                 }
-
-                rval = true;
+                else
+                {
+                    rval = true;
+                }
             }
 
             return rval;

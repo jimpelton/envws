@@ -1,22 +1,24 @@
-﻿
-using System;
+﻿using System;
 using System.IO;
 using System.ServiceModel;
 using System.ServiceModel.Discovery;
 using System.Threading;
 using System.Linq;
+using System.Collections.Generic;
 
-using log4net;
-using log4net.Config;
-using TrackProcess;
 
 namespace EnvwsTracker
 {
+    using log4net;
+    using log4net.Config;
+    
+    using TrackProcess;
     using EnvwsLib.Util;
+    using EnvwsLib.Events;
     using EnvwsLib.DataContracts;
     using EnvwsLib.ServiceProxies;
     using EnvwsLib.ServiceContracts;
-    using System.Collections.Generic;
+    
 
 	/// <summary>
 	/// TrackProcessClient is a client to the Orchestrator service.
@@ -185,7 +187,7 @@ namespace EnvwsTracker
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnStatusChanged(object sender, TrackProcess.StatusChangedEventArgs e)
+        private void OnStatusChanged(object sender, StatusChangedEventArgs e)
         {
             Data.Status = e.Status;
         }

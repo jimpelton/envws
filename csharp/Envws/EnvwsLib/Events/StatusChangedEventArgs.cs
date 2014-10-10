@@ -1,12 +1,7 @@
-﻿
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System;
+﻿using System;
 using EnvwsLib.DataContracts;
 
-namespace TrackProcess
+namespace EnvwsLib.Events
 {
     public class StatusChangedEventArgs : EventArgs 
     {

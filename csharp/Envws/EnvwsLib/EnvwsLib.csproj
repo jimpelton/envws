@@ -114,10 +114,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataContracts\JobData.cs" />
+    <Compile Include="Events\JobCompletedEventArgs.cs" />
+    <Compile Include="Events\StatusChangedEventArgs.cs" />
     <Compile Include="ServiceContracts\ICheckInService.cs" />
     <Compile Include="ServiceContracts\IOrchestratorService.cs" />
     <Compile Include="ServiceProxies\CheckInServiceClientProxy.cs" />
     <Compile Include="ServiceProxies\OrchestratorServiceClientProxy.cs" />
+    <Compile Include="Tracker\JobRunner.cs" />
     <Compile Include="Tracker\TrackerMemoryInfo.cs" />
     <Compile Include="Util\ConfigParser.cs" />
     <Compile Include="Tracker\ProcessTracker.cs" />

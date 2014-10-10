@@ -1,10 +1,10 @@
 ﻿using System;
 
 
-namespace TrackProcess
+namespace EnvwsLib.Tracker
 {
-    using EnvwsLib.DataContracts;
-    using EnvwsTracker;
+    using DataContracts;
+    using Events;
 
     public abstract class JobRunner
     {

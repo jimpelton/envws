@@ -154,10 +154,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigEntry.cs" />
-    <Compile Include="JobRunner.cs" />
-    <Compile Include="StatusChangedEventArgs.cs" />
     <Compile Include="EnvisionJobRunner.cs" />
-    <Compile Include="JobCompletedEventArgs.cs" />
     <Compile Include="ProcessTrackerManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RepoVer.cs" />
@@ -168,7 +165,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="configs\service.config.devel" />
+    <None Include="configs\tracker.conf" />
     <None Include="configs\service.config.sample" />
     <None Include="configs\service.config.vm" />
     <None Include="Properties\app.manifest" />
