@@ -166,8 +166,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="configs\tracker.conf" />
-    <None Include="configs\service.config.sample" />
-    <None Include="configs\service.config.vm" />
     <None Include="Properties\app.manifest" />
   </ItemGroup>
   <ItemGroup>

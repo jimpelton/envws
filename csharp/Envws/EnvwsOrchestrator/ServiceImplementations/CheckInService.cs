@@ -39,16 +39,5 @@ namespace EnvwsOrchestrator
             
             TrackerQueue.PushFinishedJob(j);
         }
-
-        //private string GetIP()
-        //{
-        //    OperationContext context = OperationContext.Current;
-        //    MessageProperties prop = context.IncomingMessageProperties;
-        //    RemoteEndpointMessageProperty endpoint =
-        //       prop[RemoteEndpointMessageProperty.Name] as RemoteEndpointMessageProperty;
-        //    string ip = endpoint.Address;
-            
-        //    return ip;
-        //}
     }
 }

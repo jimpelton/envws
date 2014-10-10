@@ -96,6 +96,24 @@ namespace EnvwsLib.DataContracts
             return copy;
         }
 
+        protected bool Equals(TrackerData other)
+        {
+            return string.Equals(Guid, other.Guid);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((TrackerData) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return (Guid != null ? Guid.GetHashCode() : 0);
+        }
+
         public override string ToString()
         {
             string rval = "Guid: " + Guid + " Status: " + Status;

@@ -130,8 +130,10 @@ namespace EnvwsLib.DataContracts
                 TrackerGuid = string.Copy(rhs.TrackerGuid),
                 JobPrivateWorkingSetSize = rhs.JobPrivateWorkingSetSize
             };
+
             copy.ProjectScenarios = new int[rhs.ProjectScenarios.Length];
             Array.Copy(rhs.ProjectScenarios, copy.ProjectScenarios, copy.ProjectScenarios.Length);
+            
             return copy;
         }
 
@@ -141,6 +143,7 @@ namespace EnvwsLib.DataContracts
             {
                 return false;
             }
+
             JobData j = obj as JobData;
             return Guid.Equals(j.Guid);
         }

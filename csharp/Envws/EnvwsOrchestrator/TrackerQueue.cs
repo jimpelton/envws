@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading;
 
 namespace EnvwsOrchestrator
@@ -18,8 +19,8 @@ namespace EnvwsOrchestrator
         /// <summary>
         /// All trackers in this orchestrators known universe.
         /// </summary>
-        private readonly ConcurrentDictionary<Guid, TrackerData>
-            allTrackers = new ConcurrentDictionary<Guid, TrackerData>();
+        private readonly List<TrackerData>
+            allTrackers = new List<TrackerData>();
 
         /// <summary>
         /// Jobs just delivered, not sent to trackers yet.
@@ -158,7 +159,6 @@ namespace EnvwsOrchestrator
         /// </returns>
         public int IdleTrackers()
         {
-            //return allTrackers.Count(kvp => kvp.Value.Status == TrackerStatus.IDLE);
             return idleTrackersCount;
         }
 
@@ -170,7 +170,6 @@ namespace EnvwsOrchestrator
         /// </returns>
         public int RunningTrackers()
         {
-            //return allTrackers.Values.Count(kvp => kvp.Status == TrackerStatus.RUNNING);
             return runningTrackersCount;
         }
 
@@ -184,7 +183,7 @@ namespace EnvwsOrchestrator
         {
             lock (allTrackers)
             {
-                allTrackers.AddOrUpdate(Guid.Parse(td.Guid), td, (g, t) => td);
+                allTrackers.Remove(td);
             }
         }
 
@@ -197,11 +196,11 @@ namespace EnvwsOrchestrator
         /// <returns>
         /// true if added successfully, false otherwise
         /// </returns>
-        public bool EnqueueNewTracker(TrackerData client)
+        public void EnqueueNewTracker(TrackerData client)
         {
             lock (allTrackers)
             {
-                return allTrackers.TryAdd(Guid.Parse(client.Guid), client);
+                allTrackers.Add(client);
             }
         }
 
@@ -217,7 +216,7 @@ namespace EnvwsOrchestrator
             lock (allTrackers)
             {
                 trackers = new TrackerData[allTrackers.Count];
-                allTrackers.Values.CopyTo(trackers, 0);
+                allTrackers.CopyTo(trackers, 0);
             }
         }
         
@@ -233,43 +232,58 @@ namespace EnvwsOrchestrator
             int lateTrackersCount = 0;
             int idle = 0;
             int running = 0;
+
+            //TODO: oh man, this could be better! ;)
             lock (allTrackers)
-            {
-                foreach (TrackerData td in allTrackers.Values)
+            {       
+                IEnumerable<TrackerData> lateOnes;
+            
+                lateOnes = allTrackers.Where(td => TimeSinceLastCheckin(td) >= 3*lateCheckinLimit && td.Status == TrackerStatus.NO_RESPONSE);
+                foreach (TrackerData td in lateOnes)
                 {
-                    if (IsLate(td))
+                    allTrackers.Remove(td);
+                    logger.Info(
+                              string.Format("Tracker {0} was removed from list of trackers ({1} milliseconds late).",
+                                  td.HostName, TimeSinceLastCheckin(td)));
+                }
+
+
+                lateOnes = allTrackers.Where(td => TimeSinceLastCheckin(td) >= lateCheckinLimit);
+                foreach (TrackerData td in lateOnes)
+                {
+                    td.Status = TrackerStatus.NO_RESPONSE;
+                    lateTrackersCount++;
+                    logger.Info("Tracker " + td.HostName + " has been marked as late.");
+                }
+
+
+                foreach (TrackerData td in allTrackers)
+                {
+                    switch (td.Status)
                     {
-                        td.Status = TrackerStatus.NO_RESPONSE;
-                        lateTrackersCount++;
-                        logger.Debug("Tracker " + td.Guid + " has been marked as late.");
-                    }
-                    else
-                    {
-                        switch (td.Status)
-                        {
-                            case TrackerStatus.RUNNING:
-                                running++;
-                                break;
-                            case TrackerStatus.IDLE:
-                                idle++;
-                                break;
-                            default:
-                                break;
-                        }
+                        case TrackerStatus.RUNNING:
+                            running++;
+                            break;
+                        case TrackerStatus.IDLE:
+                            idle++;
+                            break;
+                        default:
+                            break;
                     }
                 }
             }
-
+            
             idleTrackersCount = idle;
             runningTrackersCount = running;
             
             return lateTrackersCount;
         }
 
-        private bool IsLate(TrackerData td)
+        private long IsLate(TrackerData td)
         {
-            bool late = TimeSinceLastCheckin(td) > this.lateCheckinLimit;
-            return late;
+            long time = TimeSinceLastCheckin(td);
+            bool late = time > lateCheckinLimit;
+            return time;
         }
 
         private long TimeSinceLastCheckin(TrackerData td)
