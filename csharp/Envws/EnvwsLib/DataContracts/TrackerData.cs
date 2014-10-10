@@ -44,6 +44,7 @@ namespace EnvwsLib.DataContracts
 
         /// <summary>
         /// Gets or sets the current job this tracker is working on.
+        /// If there is no Job running, CurrentJob should be set to the EmptyJob.
         /// </summary>
         [DataMember]
         public JobData CurrentJob { get; set; }
@@ -57,6 +58,13 @@ namespace EnvwsLib.DataContracts
         
         /// <summary>
         /// Initializes a new instance of the <see cref="TrackerData"/> class. 
+        /// 
+        /// Default values of the TrackerData:
+        /// The Guid and HostName are both initialized to string.Empty.
+        /// The Status is initialized to TrackerStatus.IDLE.
+        /// LastCheckinTime is initialized to -1.
+        /// CurrentJob is initialized to JobData.EmptyJob.
+        /// MemoryInfo is set to a new TrackerMemoryInfo() instance.
         /// </summary>
         public TrackerData()
         {
@@ -65,6 +73,7 @@ namespace EnvwsLib.DataContracts
             Status = TrackerStatus.IDLE;
             LastCheckinTime = -1;
             CurrentJob = JobData.EmptyJob;
+            MemoryInfo = new TrackerMemoryInfo();
         }
         
         /// <summary>

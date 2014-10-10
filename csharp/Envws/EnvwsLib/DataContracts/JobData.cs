@@ -95,11 +95,11 @@ namespace EnvwsLib.DataContracts
         public long JobPrivateWorkingSetSize { get; set; }
 
         public static JobData EmptyJob { get { return _emptyJob; } }
-        private static readonly JobData _emptyJob = new JobData();
+        private static readonly JobData _emptyJob = new JobData("EMPTY_JOB");
 
-        public JobData()
+        private JobData(string guid)
         {
-            Guid = "";
+            Guid = guid;
             EnvxName = "";
             ProjectSourceUri = "";
             ProjectScenarios = new int[0];
@@ -111,6 +111,8 @@ namespace EnvwsLib.DataContracts
             TrackerGuid = "";
             JobPrivateWorkingSetSize = -1L;
         }
+
+        public JobData() : this("") { }
 
 
         public static JobData DeepCopy(JobData rhs)

@@ -19,11 +19,9 @@ namespace EnvwsOrchestrator
 
         public bool CheckIn(TrackerData td)
         {
-            td.LastCheckinTime = Utils.CurrentUTCMillies();
-
             logger.Debug("Tracker just checked in: " + td);
-            
             TrackerQueue.UpdateTracker(td);
+
             return true;
         }
 
@@ -31,12 +29,12 @@ namespace EnvwsOrchestrator
         {
             JobData j;
             TrackerQueue.GetJob(out j);
+            
             return j;
         }
 
         public void ReturnFinishedJob(JobData j)
         {
-            
             TrackerQueue.PushFinishedJob(j);
         }
     }

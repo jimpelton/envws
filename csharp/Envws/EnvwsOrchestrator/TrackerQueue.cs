@@ -126,8 +126,10 @@ namespace EnvwsOrchestrator
         public void PushFinishedJob(JobData j)
         {
             JobData n;
-            finishedJobs.TryAdd(Guid.Parse(j.Guid), j);
             runningJobs.TryRemove(Guid.Parse(j.Guid), out n);
+            finishedJobs.TryAdd(Guid.Parse(j.Guid), j);    
+
+            logger.InfoFormat("Put finished job {0} ({1}) with status {2} into finished jobs queue.", j.FriendlyName, j.Guid, j.Status.ToString());
         }
 
         public JobData[] GetAllJobs()
@@ -174,7 +176,8 @@ namespace EnvwsOrchestrator
         }
 
         /// <summary>
-        /// called after a tracker checks in and delivers its new TrackerData.
+        /// Update the tracker specified by <code>td</code> with the 
+        /// info from <code>td</code>.
         /// </summary>
         /// <param name="td">
         /// The updated TrackerData for some tracker.
@@ -183,7 +186,9 @@ namespace EnvwsOrchestrator
         {
             lock (allTrackers)
             {
-                allTrackers.Remove(td);
+                int i = allTrackers.FindIndex(t => t.Equals(td));
+                td.LastCheckinTime = Utils.CurrentUTCMillies();
+                allTrackers[i] = td;
             }
         }
 
@@ -200,7 +205,10 @@ namespace EnvwsOrchestrator
         {
             lock (allTrackers)
             {
-                allTrackers.Add(client);
+                if (! allTrackers.Contains(client))
+                {
+                    allTrackers.Add(client);
+                }
             }
         }
 
@@ -233,22 +241,29 @@ namespace EnvwsOrchestrator
             int idle = 0;
             int running = 0;
 
-            //TODO: oh man, this could be better! ;)
-            lock (allTrackers)
-            {       
-                IEnumerable<TrackerData> lateOnes;
+            long ctime = Utils.CurrentUTCMillies();
             
-                lateOnes = allTrackers.Where(td => TimeSinceLastCheckin(td) >= 3*lateCheckinLimit && td.Status == TrackerStatus.NO_RESPONSE);
-                foreach (TrackerData td in lateOnes)
+            //TODO: oh man, this could be better! ;)
+            IEnumerable<TrackerData> removedOnes, lateOnes;
+
+            lock (allTrackers)
+            {
+                // check for trackers that are already late and remove if really, really late.
+                removedOnes = allTrackers.Where(td => TrackerShouldBeRemoved(td, ctime));
+                foreach (TrackerData td in removedOnes)
                 {
                     allTrackers.Remove(td);
-                    logger.Info(
-                              string.Format("Tracker {0} was removed from list of trackers ({1} milliseconds late).",
-                                  td.HostName, TimeSinceLastCheckin(td)));
+                    if (!RequeueJobIfNeeded(td))
+                    {
+                        PushFinishedJob(td.CurrentJob);
+                    }
+
+                    logger.InfoFormat("Tracker {0} was removed from list of trackers ({1} milliseconds late).",
+                                  td.HostName, TimeSinceLastCheckin(td, ctime));
                 }
 
-
-                lateOnes = allTrackers.Where(td => TimeSinceLastCheckin(td) >= lateCheckinLimit);
+                // find late trackers and mark them as late.
+                lateOnes = allTrackers.Where(td => IsLate(td, ctime));
                 foreach (TrackerData td in lateOnes)
                 {
                     td.Status = TrackerStatus.NO_RESPONSE;
@@ -256,7 +271,7 @@ namespace EnvwsOrchestrator
                     logger.Info("Tracker " + td.HostName + " has been marked as late.");
                 }
 
-
+                // Count individual totals for idle and running trackers.
                 foreach (TrackerData td in allTrackers)
                 {
                     switch (td.Status)
@@ -271,24 +286,50 @@ namespace EnvwsOrchestrator
                             break;
                     }
                 }
-            }
-            
+            } // lock (allTrackers)
+
             idleTrackersCount = idle;
             runningTrackersCount = running;
             
             return lateTrackersCount;
         }
 
-        private long IsLate(TrackerData td)
+        private bool RequeueJobIfNeeded(TrackerData td)
         {
-            long time = TimeSinceLastCheckin(td);
-            bool late = time > lateCheckinLimit;
-            return time;
+            bool wasRemoved = false;
+            JobData jd = td.CurrentJob;
+
+            if (!jd.Equals(JobData.EmptyJob) && jd.Status == JobStatus.RUNNNG)
+            {
+                JobData removedJob = null;
+                wasRemoved = runningJobs.TryRemove(Guid.Parse(jd.Guid), out removedJob);
+                if (wasRemoved)
+                {
+                    removedJob.Status = JobStatus.QUEUED;
+                    PushJob(removedJob);
+
+                    logger.InfoFormat("Job {0} ({1}) was requeued because its tracker went offline.",
+                        removedJob.FriendlyName, removedJob.Guid);
+                }
+            }
+
+            return wasRemoved;
         }
 
-        private long TimeSinceLastCheckin(TrackerData td)
+        private bool TrackerShouldBeRemoved(TrackerData td, long currTime)
         {
-            return Utils.CurrentUTCMillies() - td.LastCheckinTime;
+            return TimeSinceLastCheckin(td, currTime) > 3*lateCheckinLimit &&
+                   td.Status == TrackerStatus.NO_RESPONSE;
+        }
+
+        private bool IsLate(TrackerData td, long currTime)
+        {
+            return TimeSinceLastCheckin(td, currTime) > lateCheckinLimit;
+        }
+
+        private long TimeSinceLastCheckin(TrackerData td, long curTime)
+        {
+            return curTime - td.LastCheckinTime;
         }
     }
 }
