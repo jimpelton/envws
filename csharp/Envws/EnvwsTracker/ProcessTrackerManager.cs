@@ -134,15 +134,21 @@ namespace EnvwsTracker
 
                 job.StartTime = Utils.CurrentUTCMillies();
                 
-                int exitCode = RunInSynchronousTask(job);
+                int exitCode = RunSynchronousTask(job);
 
                 job.FinishTime = Utils.CurrentUTCMillies();
                 job.EnvisionExitCode = exitCode;
-                
+
+                if (exitCode != 0)
+                    job.Status = JobStatus.FAILED;
+                else
+                    job.Status = JobStatus.COMPLETE;
+
                 logger.Info("Envision exit code: " + exitCode);
 
                 jobqueue.EnqueueDone(job);
                 Status = TrackerStatus.IDLE;
+                
                 logger.Info(string.Format("Job finished {0} ({1})", job.FriendlyName, job.Guid));
 
                 //send job completed event
@@ -163,7 +169,7 @@ namespace EnvwsTracker
         /// </summary>
         /// <param name="job">The job to hand off to a job runner.</param>
         /// <returns>Exit code from the runner, -1 if the jobrunner failed.</returns>
-        private int RunInSynchronousTask(JobData job)
+        private int RunSynchronousTask(JobData job)
         {
             int exitCode = -1;
             try

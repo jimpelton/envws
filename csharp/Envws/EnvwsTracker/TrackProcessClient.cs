@@ -115,8 +115,8 @@ namespace EnvwsTracker
             Client = InvokeCheckInService(FindCheckInService());
             if (Client != null)
             {
-                PingTimer = new Timer(this.OnPingTimer, this, Timeout.Infinite, Timeout.Infinite);
-                CheckJobTimer = new Timer(this.RequestNewJob, this, Timeout.Infinite, Timeout.Infinite);
+                PingTimer = new Timer(OnPingTimer, this, Timeout.Infinite, Timeout.Infinite);
+                CheckJobTimer = new Timer(RequestNewJob, this, Timeout.Infinite, Timeout.Infinite);
                 //this.StartPingLoop();
             }
             else
@@ -127,8 +127,8 @@ namespace EnvwsTracker
 
             Manager = new ProcessTrackerManager();
 
-            Manager.JobCompleted += this.OnJobComplete;
-            Manager.StatusChanged += this.OnStatusChanged;
+            Manager.JobCompleted += OnJobComplete;
+            Manager.StatusChanged += OnStatusChanged;
             Manager.Start();
 
             RequestNewJob(this);
@@ -206,7 +206,7 @@ namespace EnvwsTracker
             try
             {
 				IEnumerable<TrackerJobData> unreturnedJobs = 
-                    CompletedJobs.Where<TrackerJobData>(j => !j.HasBeenReturnedToTracker);
+                    CompletedJobs.Where(j => !j.HasBeenReturnedToTracker);
 				
 				foreach (TrackerJobData j in unreturnedJobs)
 				{
@@ -239,7 +239,7 @@ namespace EnvwsTracker
                 {
                     logger.Info(
                         string.Format("Received new job from orchestrator: {0} ({1})", 
-                        jd.FriendlyName, jd.Guid));
+                            jd.FriendlyName, jd.Guid));
 
                     jd.TrackerGuid = Data.Guid;
 
@@ -248,7 +248,7 @@ namespace EnvwsTracker
                     
                     logger.Info(
                         string.Format("Added new job to manager: {0} ({1})", 
-                        jd.FriendlyName, jd.Guid));
+                            jd.FriendlyName, jd.Guid));
 
                     // Stop job requests while working on current job.
                     RequestJobFreqMillis = Timeout.Infinite;

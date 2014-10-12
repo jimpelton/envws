@@ -9,8 +9,8 @@ namespace EnvwsLib.DataContracts
         RUNNNG,           // Running on tracker
         COMPLETE,         // Completed
 
-        FAILED,           // Failed for some reason?
-        FAILED_EXIT_CODE  // Failed--tracker child proc returned non-zero exit code.
+        FAILED           // check the logs (always, the logs!) !
+        
     }
 
     [DataContract]
