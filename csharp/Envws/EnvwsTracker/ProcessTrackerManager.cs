@@ -10,7 +10,6 @@ namespace EnvwsTracker
     using EnvwsLib.Util;
     using EnvwsLib.Tracker;
     using EnvwsLib.DataContracts;
-    using TrackProcess;
 
     public class ProcessTrackerManager
     {

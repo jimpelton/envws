@@ -2,7 +2,7 @@
 using System.Linq;
 using System.IO;
 
-namespace TrackProcess
+namespace EnvwsTracker
 {
     using EnvwsLib.DataContracts;
     using EnvwsLib.Tracker;

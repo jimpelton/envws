@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using EnvwsLib.Util;
 
-namespace TrackProcess
+namespace EnvwsTracker
 {
     public enum ConfigKey
     {
