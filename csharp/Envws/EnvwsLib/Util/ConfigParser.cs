@@ -229,14 +229,15 @@ namespace EnvwsLib.Util
         {
             int rval = 1;
 
+            line = line.Trim();
+
             if (line == string.Empty)
                 return rval;
             
             if (COMMENT_CHARS.Contains(line[0]))
                 return rval;
 
-            line = line.Trim();
-
+            
             // lineSplits[0] is the option
             // lineSplits[i], for i>0, are the values for that option
             string[] lineSplits = line.Split('=');
