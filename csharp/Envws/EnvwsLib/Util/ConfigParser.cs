@@ -56,7 +56,7 @@ namespace EnvwsLib.Util
 
         public override string ToString()
         {
-            return string.Format("%s: %s", Key, Value);
+            return string.Format("{0}: {1}", Key, Value);
         }
     }
 
