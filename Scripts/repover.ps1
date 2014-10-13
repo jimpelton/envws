@@ -1,3 +1,4 @@
+# Make a .cs class with svn commit number in a single variable called VER.
 param(
     [Parameter(Mandatory=$true)]
 	[string]$outpath = "",
