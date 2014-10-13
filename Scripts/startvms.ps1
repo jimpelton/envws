@@ -1,3 +1,4 @@
+# Start vmware virtual machines with no GUI.
 
 [string[]] $vmPaths = @('G:\Virtual Machines\Arch64-envws-deploy-server\Arch64-envws-deploy-server.vmx',
                         'G:\Virtual Machines\envws-orch\envws-orch.vmx',

@@ -1,3 +1,5 @@
+# Delete a service with the name provided on the command line.
+
 param(
     [string]$name = ""
     )
