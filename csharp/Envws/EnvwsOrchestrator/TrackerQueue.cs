@@ -184,11 +184,14 @@ namespace EnvwsOrchestrator
         /// </param>
         public void UpdateTracker(TrackerData td)
         {
+            td.LastCheckinTime = Utils.CurrentUTCMillies();
             lock (allTrackers)
             {
                 int i = allTrackers.FindIndex(t => t.Equals(td));
-                td.LastCheckinTime = Utils.CurrentUTCMillies();
-                allTrackers[i] = td;
+                if (i < 0)
+                    allTrackers.Add(td);
+                else
+                    allTrackers[i] = td;
             }
         }
 

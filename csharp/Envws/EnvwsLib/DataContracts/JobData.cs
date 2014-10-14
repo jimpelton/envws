@@ -95,7 +95,7 @@ namespace EnvwsLib.DataContracts
         public long JobPrivateWorkingSetSize { get; set; }
 
         public static JobData EmptyJob { get { return _emptyJob; } }
-        private static readonly JobData _emptyJob = new JobData("EMPTY_JOB");
+        private static readonly JobData _emptyJob = new JobData("14ad99ae-72b3-4861-99ac-7be6401d0133");
 
         private JobData(string guid)
         {

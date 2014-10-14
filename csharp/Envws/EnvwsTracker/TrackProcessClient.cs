@@ -10,9 +10,7 @@ using System.Collections.Generic;
 namespace EnvwsTracker
 {
     using log4net;
-    using log4net.Config;
     
-    using EnvwsLib.Util;
     using EnvwsLib.Events;
     using EnvwsLib.DataContracts;
     using EnvwsLib.ServiceProxies;
@@ -24,8 +22,9 @@ namespace EnvwsTracker
 	/// </summary>
     public class TrackProcessClient
     {
-        
-        private static ILog logger;
+
+        private static ILog
+            logger = LogManager.GetLogger(typeof(TrackProcessClient));
 
         /// <summary>
         /// The current state of this tracker is kept in the TrackerData. By sending
@@ -60,9 +59,17 @@ namespace EnvwsTracker
         /// </summary>
         private int CheckInFreqMillis { get; set; }
 
+        /// <summary>
+        /// The client proxy for the Orchestrator check-in service. 
+        /// 
+        /// The name client is probably a poor choice, since this 
+        /// TrackProcessClient object is the true client, and the 
+        /// Orchestrator provides the service end-point.
+        /// </summary>
+        private CheckInServiceClientProxy Client { get; set; }
+
 
         private const int CHECKIN_INTERVAL_NORMAL = 1000;
-        
         private const int CHECKIN_INTERVAL_SLOW = 5000;
 
         /// <summary>
@@ -84,15 +91,6 @@ namespace EnvwsTracker
         }
 
         /// <summary>
-        /// The client proxy for the Orchestrator check-in service. 
-        /// 
-        /// The name client is probably a poor choice, since this 
-        /// TrackProcessClient object is the true client, and the 
-        /// Orchestrator provides the service end-point.
-        /// </summary>
-        private CheckInServiceClientProxy Client { get; set; }
-        
-        /// <summary>
         /// Starts the ProcessTrackerManager for this process tracker. This method
         /// blocks until the orchestrator is automatically found (or a timeout occurs),
         /// then the ping loop and job request loops are started.
@@ -108,7 +106,6 @@ namespace EnvwsTracker
             {
                 PingTimer = new Timer(OnPingTimer, this, Timeout.Infinite, Timeout.Infinite);
                 CheckJobTimer = new Timer(RequestNewJob, this, Timeout.Infinite, Timeout.Infinite);
-                //this.StartPingLoop();
             }
             else
             {

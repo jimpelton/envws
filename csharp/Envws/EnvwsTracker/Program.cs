@@ -31,7 +31,7 @@ namespace EnvwsTracker
                 .AddOpt(ConfigOpts.Get(ConfigKey.ResultsDirectory))
                 .AddOpt(ConfigOpts.Get(ConfigKey.Log4NetConfigFile))
                 .SetDefaultOptValue(ConfigOpts.Get(ConfigKey.Log4NetConfigFile), "log4.config")
-                .SetDefaultOptValue(ConfigOpts.Get(ConfigKey.EnvisionOutputDirectoryName), "Output");
+                .SetDefaultOptValue(ConfigOpts.Get(ConfigKey.EnvisionOutputDirectoryName), "Outputs");
 
             ParseArgsAndOpenConfigFile(args, config);
 
@@ -112,7 +112,7 @@ namespace EnvwsTracker
             {
                 if (args[0].ToLower() == "-v")
                 {
-                    Console.WriteLine("Version: {0}", EnvwsTracker.RepoVer.VER);
+                    Console.WriteLine("Version: {0}", RepoVer.VER);
                     Environment.Exit(0);
                 }
 
